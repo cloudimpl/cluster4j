@@ -4,7 +4,7 @@
     <groupId>com.cloudimpl</groupId>
     <artifactId>cluster4j</artifactId>
     <version>2.0.0</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
     <name>cloudImpl-cluster4j</name>
     <description>java microservice library with cluster support</description>
     <url>http://github.com/cloudimpl/cluster4j</url>
@@ -31,9 +31,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <cloudImpl.errorCode.enable>true</cloudImpl.errorCode.enable>
-        <cloudImpl.errorCode.package>com.cloudimpl.cluster4j.collection.error</cloudImpl.errorCode.package>
-        <cloudImpl.errorCode.errorFileName>Collection</cloudImpl.errorCode.errorFileName>
     </properties>
     <dependencies>
         <dependency>
@@ -192,6 +189,10 @@
             </build>
         </profile>
     </profiles>
+    <modules>
+        <module>cluster-core</module>
+        <module>cluster-impl</module>
+    </modules>
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>

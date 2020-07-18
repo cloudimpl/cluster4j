@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.cloudimpl</groupId>
+        <artifactId>cluster4j</artifactId>
+        <version>2.0.0</version>
+    </parent>
+    <artifactId>cluster-impl</artifactId>
+    <packaging>jar</packaging>
+     <properties>
+        <cloudImpl.errorCode.enable>true</cloudImpl.errorCode.enable>
+        <cloudImpl.errorCode.package>com.cloudimpl.cluster4j.collection.error</cloudImpl.errorCode.package>
+        <cloudImpl.errorCode.errorFileName>Collection</cloudImpl.errorCode.errorFileName>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>cluster-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>
