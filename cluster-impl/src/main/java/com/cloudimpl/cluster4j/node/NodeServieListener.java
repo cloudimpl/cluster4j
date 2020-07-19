@@ -6,9 +6,9 @@ package com.cloudimpl.cluster4j.node;
 
 import com.cloudimpl.cluster4j.common.CloudMessage;
 import com.cloudimpl.cluster4j.common.EndpointListener;
-import com.cloudimpl.cluster4j.core.CloudMsgHdr;
+import com.cloudimpl.cluster4j.coreImpl.CloudMsgHdr;
 import com.cloudimpl.cluster4j.core.CloudService;
-import com.cloudimpl.cluster4j.core.CloudServiceRegistry;
+import com.cloudimpl.cluster4j.coreImpl.CloudServiceRegistry;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

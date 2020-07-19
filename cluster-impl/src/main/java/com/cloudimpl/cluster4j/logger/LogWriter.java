@@ -1,6 +1,6 @@
 package com.cloudimpl.cluster4j.logger;
 
-import com.cloudimpl.cluster4j.core.TimeUtils;
+import com.cloudimpl.cluster4j.coreImpl.TimeUtils;
 import java.text.MessageFormat;
 
 /**

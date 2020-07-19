@@ -8,7 +8,7 @@ import com.cloudimpl.cluster4j.common.CloudMessage;
 import com.cloudimpl.cluster4j.core.CloudRouter;
 import com.cloudimpl.cluster4j.core.CloudRouterDescriptor;
 import com.cloudimpl.cluster4j.core.CloudService;
-import com.cloudimpl.cluster4j.core.CloudServiceRegistry;
+import com.cloudimpl.cluster4j.coreImpl.CloudServiceRegistry;
 import com.cloudimpl.cluster4j.core.Inject;
 import com.cloudimpl.cluster4j.core.Named;
 import com.cloudimpl.cluster4j.core.RouterException;

@@ -15,5 +15,6 @@ public enum RouterType {
   LOCAL,
   CONSISTENT_HASH,
   LEADER,
-  LEADER_AFFINITY
+  LEADER_AFFINITY,
+  SERVICE_ID
 }

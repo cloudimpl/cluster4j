@@ -96,6 +96,16 @@
             <version>2.4.9</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>io.github.classgraph</groupId>
+            <artifactId>classgraph</artifactId>
+            <version>4.8.87</version>
+        </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.4.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>   
@@ -192,6 +202,7 @@
     <modules>
         <module>cluster-core</module>
         <module>cluster-impl</module>
+        <module>cluster-example</module>
     </modules>
     <distributionManagement>
         <snapshotRepository>

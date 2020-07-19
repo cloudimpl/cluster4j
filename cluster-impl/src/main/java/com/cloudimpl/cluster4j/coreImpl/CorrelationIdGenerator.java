@@ -1,4 +1,4 @@
-package com.cloudimpl.cluster4j.core;
+package com.cloudimpl.cluster4j.coreImpl;
 
 
 import java.util.Objects;

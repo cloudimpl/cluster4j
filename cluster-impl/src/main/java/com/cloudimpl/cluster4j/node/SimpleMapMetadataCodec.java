@@ -1,6 +1,6 @@
 package com.cloudimpl.cluster4j.node;
 
-import com.cloudimpl.cluster4j.core.MessageCodecImpl;
+import com.cloudimpl.cluster4j.coreImpl.MessageCodecImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.scalecube.cluster.metadata.MetadataDecoder;
 import io.scalecube.cluster.metadata.MetadataEncoder;

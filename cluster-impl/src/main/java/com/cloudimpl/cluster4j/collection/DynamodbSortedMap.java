@@ -27,7 +27,7 @@ import com.amazonaws.services.dynamodbv2.model.ReturnValue;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.cloudimpl.cluster4j.collection.error.CollectionException;
 import com.cloudimpl.cluster4j.common.GsonCodec;
-import com.cloudimpl.cluster4j.core.TimeUtils;
+import com.cloudimpl.cluster4j.coreImpl.TimeUtils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.util.ArrayList;

@@ -4,8 +4,8 @@
  */
 package com.cloudimpl.cluster4j.collection;
 
-import com.cloudimpl.cluster4j.core.CloudServiceRegistry;
-import com.cloudimpl.cluster4j.core.FluxMap;
+import com.cloudimpl.cluster4j.coreImpl.CloudServiceRegistry;
+import com.cloudimpl.cluster4j.coreImpl.FluxMap;
 import com.cloudimpl.cluster4j.le.LeaderElectionManager;
 import com.cloudimpl.cluster4j.core.logger.ILogger;
 import java.util.Map;

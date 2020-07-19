@@ -7,11 +7,11 @@ package com.cloudimpl.cluster4j.routers;
 import com.cloudimpl.cluster4j.common.CloudMessage;
 import com.cloudimpl.cluster4j.core.CloudRouter;
 import com.cloudimpl.cluster4j.core.CloudService;
-import com.cloudimpl.cluster4j.core.CloudServiceRegistry;
-import com.cloudimpl.cluster4j.core.FluxStream;
 import com.cloudimpl.cluster4j.core.Inject;
 import com.cloudimpl.cluster4j.core.Named;
 import com.cloudimpl.cluster4j.core.RouterException;
+import com.cloudimpl.cluster4j.coreImpl.CloudServiceRegistry;
+import com.cloudimpl.cluster4j.coreImpl.FluxStream;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -25,7 +25,7 @@ public class RoundRobinRouter implements CloudRouter {
 
   private Set<CloudService> services = new ConcurrentSkipListSet<>();
   private Iterator<CloudService> iterator;
-  private String topic;
+  private final String topic;
 
   @Inject
   public RoundRobinRouter(@Named("@topic") String topic, CloudServiceRegistry serviceRegistry) {

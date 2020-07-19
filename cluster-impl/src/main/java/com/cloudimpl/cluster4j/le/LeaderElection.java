@@ -4,7 +4,7 @@
  */
 package com.cloudimpl.cluster4j.le;
 
-import com.cloudimpl.cluster4j.core.FluxMap;
+import com.cloudimpl.cluster4j.coreImpl.FluxMap;
 import com.cloudimpl.cluster4j.common.Pair;
 import com.cloudimpl.cluster4j.core.logger.ILogger;
 import java.util.Map;

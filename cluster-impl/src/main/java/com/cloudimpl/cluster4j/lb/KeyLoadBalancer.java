@@ -6,7 +6,7 @@ package com.cloudimpl.cluster4j.lb;
 
 import com.cloudimpl.cluster4j.core.lb.LBResponse;
 import com.cloudimpl.cluster4j.core.lb.LBRequest;
-import com.cloudimpl.cluster4j.core.CloudServiceRegistry;
+import com.cloudimpl.cluster4j.coreImpl.CloudServiceRegistry;
 import java.util.function.Function;
 import reactor.core.publisher.Mono;
 
