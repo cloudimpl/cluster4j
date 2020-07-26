@@ -25,3 +25,7 @@ target/**
 /cluster-core/target/
 /cluster-impl/target/
 /cluster-example/target/
+/cluster-k8/target/
+/rest-service/target/
+/cluster-seed/target/
+/rest-api/target/

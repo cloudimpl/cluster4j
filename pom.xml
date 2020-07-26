@@ -106,6 +106,12 @@
             <artifactId>picocli</artifactId>
             <version>4.4.0</version>
         </dependency>
+         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.8</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     <build>
         <plugins>   
@@ -203,6 +209,10 @@
         <module>cluster-core</module>
         <module>cluster-impl</module>
         <module>cluster-example</module>
+        <module>cluster-k8</module>
+        <module>rest-service</module>
+        <module>rest-api</module>
+        <module>cluster-seed</module>
     </modules>
     <distributionManagement>
         <snapshotRepository>

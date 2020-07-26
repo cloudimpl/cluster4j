@@ -7,7 +7,7 @@ package com.cloudimpl.cluster4j.node;
 import com.cloudimpl.cluster4j.core.CloudUtil;
 import io.scalecube.net.Address;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -72,14 +72,14 @@ public class NodeConfig {
   }
 
   public static final class Builder {
-    private List<Address> seeds = Collections.EMPTY_LIST;
+    private List<Address> seeds = new LinkedList<>();
     private String gossipAddress = CloudUtil.getHostIpAddr();
     private int gossipPort = 12000;
     private int nodePort = 10000;
     private int clientPort;
 
     public Builder withSeedNodes(Address... address) {
-      seeds = Arrays.asList(address);
+      seeds.addAll(Arrays.asList(address));
       return this;
     }
 

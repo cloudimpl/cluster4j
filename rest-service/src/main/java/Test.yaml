@@ -1,0 +1,8 @@
+---
+port: 12345
+name: nuwan
+list:
+    - clazz: com.cloudimpl.rest.service.Student
+      configs:
+       name: ${USER}
+       age : 35

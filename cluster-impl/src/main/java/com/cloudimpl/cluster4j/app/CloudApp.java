@@ -33,9 +33,12 @@ public class CloudApp {
         Injector injector = new Injector();
         injector.bind(LogWriter.class).to(new ConsoleLogWriter());
         ServiceLoader serviceLoader = new ServiceLoader();
-        CloudNode node = new CloudNode(injector, appConfig.getNodeConfig());
-        serviceLoader.init(node);
-        node.start();
+        appConfig.getNodeConfig().doOnNext(c -> {
+            CloudNode node = new CloudNode(injector, c);
+            serviceLoader.init(node);
+            node.start();
+        }).subscribe();
+
         Thread.currentThread().join();
     }
 

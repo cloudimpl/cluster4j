@@ -15,13 +15,18 @@
  */
 package com.cloudimpl.cluster4j.app;
 
+import com.cloudimpl.cluster4j.core.CloudException;
 import com.cloudimpl.cluster4j.node.NodeConfig;
 import io.scalecube.net.Address;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+import org.apache.commons.text.lookup.StringLookupFactory;
 import picocli.CommandLine;
+import reactor.core.publisher.Mono;
+import reactor.retry.Retry;
 
 /**
  *
@@ -32,18 +37,29 @@ public class AppConfig implements Callable<Integer> {
     @CommandLine.Option(names = "-gp", required = false, description = "cluster gossip port")
     int gossipPort = -1;
 
+    @CommandLine.Option(names = "-ws", required = false, description = "wait for seed")
+    boolean waitForSeed = false;
+
+    @CommandLine.Option(names = "-sn", required = false, description = "seed dns name")
+    String seedName = null;
+
     @CommandLine.Option(names = "-sp", required = false, description = "service port")
     int servicePort = -1;
 
     @CommandLine.Option(names = "-sd", required = false, description = "seeds nodes")
     List<String> seeds;
-    
+
     List<Address> endpoints = Collections.EMPTY_LIST;
 
     @Override
     public Integer call() throws Exception {
-        if(seeds == null)
+        if (seeds == null) {
             return 0;
+        }
+        if (waitForSeed && seedName == null) {
+            throw new CloudException("seed name is missing");
+        }
+
         endpoints = seeds.stream().map(s -> s.split(":")).map(arr -> Address.create(arr[0], Integer.valueOf(arr[1]))).collect(Collectors.toList());
         return endpoints.size();
     }
@@ -60,15 +76,36 @@ public class AppConfig implements Callable<Integer> {
         return servicePort;
     }
 
-    public NodeConfig getNodeConfig()
-    {
+    public Mono<NodeConfig> getNodeConfig() {
         NodeConfig.Builder builder = NodeConfig.builder();
-        if(servicePort > 0)
+        if (servicePort > 0) {
             builder.withNodePort(servicePort);
-        if(gossipPort > 0)
+        }
+        if (gossipPort > 0) {
             builder.withGossipPort(gossipPort);
-        if(endpoints.size() > 0)
+        }
+        if (endpoints.size() > 0) {
             builder.withSeedNodes(getEndpoints());
-        return builder.build();
+        }
+        if (!waitForSeed) {
+            return Mono.just(builder.build());
+        } else {
+            return Mono.fromSupplier(() -> resolveDns(seedName))
+                    .doOnError(thr->System.out.println(thr.getMessage()))
+                    .retryWhen(Retry
+                            .any()
+                            .exponentialBackoffWithJitter(Duration.ofSeconds(1), Duration.ofSeconds(20))
+                    ).doOnNext(s -> builder.withSeedNodes(Address.create(s, gossipPort)))
+                    .map(s -> builder.build());
+        }
+
+    }
+
+    private String resolveDns(String serviceName) {
+        String addr = StringLookupFactory.INSTANCE.dnsStringLookup().lookup("address|" + seedName);
+        if (addr == null) {
+            throw new CloudException("service addr is null");
+        }
+        return addr;
     }
 }
