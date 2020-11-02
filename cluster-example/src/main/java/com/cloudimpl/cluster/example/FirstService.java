@@ -20,6 +20,9 @@ import com.cloudimpl.cluster4j.common.RouterType;
 import com.cloudimpl.cluster4j.core.Named;
 import com.cloudimpl.cluster4j.core.annon.CloudFunction;
 import com.cloudimpl.cluster4j.core.annon.Router;
+import io.prometheus.client.exporter.HTTPServer;
+import io.prometheus.client.hotspot.DefaultExports;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -34,9 +37,12 @@ import reactor.core.publisher.Mono;
 @Router(routerType = RouterType.ROUND_ROBIN)
 public class FirstService implements Function<CloudMessage, Mono<String>>{
 
-    public FirstService(@Named("RRHnd") BiFunction<String, Object, Mono> rrHnd) {
-        Flux.interval(Duration.ofSeconds(1))
+    public FirstService(@Named("RRHnd") BiFunction<String, Object, Mono> rrHnd) throws IOException {
+        DefaultExports.initialize();
+        io.prometheus.client.exporter.HTTPServer httpServer = new HTTPServer(50000,true);
+        Flux.interval(Duration.ofSeconds(5))
                 .flatMap(i->rrHnd.apply("GreetingService", "hello"+i).doOnNext(c->System.out.println(c)))
+                .doOnError(e->((Throwable)e).printStackTrace())
                 .retry(Integer.MAX_VALUE)
                 .subscribe();
     }

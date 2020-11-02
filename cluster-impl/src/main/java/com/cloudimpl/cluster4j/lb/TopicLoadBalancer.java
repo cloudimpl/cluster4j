@@ -8,7 +8,7 @@ import com.cloudimpl.cluster4j.core.lb.LBResponse;
 import com.cloudimpl.cluster4j.core.lb.LBRequest;
 import com.cloudimpl.cluster4j.common.CloudMessage;
 import com.cloudimpl.cluster4j.coreImpl.CloudServiceRegistry;
-import com.cloudimpl.cluster4j.coreImpl.FluxStream;
+import com.cloudimpl.cluster.common.FluxStream;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;

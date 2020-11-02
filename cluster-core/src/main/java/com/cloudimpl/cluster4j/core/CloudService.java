@@ -20,6 +20,8 @@ public interface CloudService extends Comparable<CloudService> {
 
   String nodeId();
 
+  String memberId();
+  
   String name();
 
   CloudServiceDescriptor getDescriptor();

@@ -15,14 +15,14 @@
  */
 package com.cloudimpl.cluster.seed;
 
+import com.cloudimpl.cluster.common.FluxStream;
 import com.cloudimpl.cluster4j.common.CloudMessage;
 import com.cloudimpl.cluster4j.common.RouterType;
 import com.cloudimpl.cluster4j.core.Inject;
 import com.cloudimpl.cluster4j.core.annon.CloudFunction;
 import com.cloudimpl.cluster4j.core.annon.Router;
-import com.cloudimpl.cluster4j.core.logger.ILogger;
 import com.cloudimpl.cluster4j.coreImpl.CloudServiceRegistry;
-import com.cloudimpl.cluster4j.coreImpl.FluxStream;
+import com.cloudimpl.cluster4j.logger.Logger;
 import java.util.function.Function;
 import reactor.core.publisher.Mono;
 
@@ -37,7 +37,7 @@ public class SeedService implements Function<CloudMessage, Mono<String>>{
     private final CloudServiceRegistry serviceRegistry;
 
     @Inject
-    public SeedService(CloudServiceRegistry registry,ILogger logger) {
+    public SeedService(CloudServiceRegistry registry,Logger logger) {
         this.serviceRegistry = registry;
          serviceRegistry.flux().filter(e -> e.getType() == FluxStream.Event.Type.ADD)
         .map(e -> e.getValue())

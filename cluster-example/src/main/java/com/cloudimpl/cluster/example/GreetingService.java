@@ -19,6 +19,7 @@ import com.cloudimpl.cluster4j.common.CloudMessage;
 import com.cloudimpl.cluster4j.common.RouterType;
 import com.cloudimpl.cluster4j.core.annon.CloudFunction;
 import com.cloudimpl.cluster4j.core.annon.Router;
+import io.prometheus.client.Counter;
 import java.util.function.Function;
 import reactor.core.publisher.Mono;
 
@@ -30,10 +31,15 @@ import reactor.core.publisher.Mono;
 @Router(routerType = RouterType.ROUND_ROBIN)
 public class GreetingService implements Function<CloudMessage, Mono<String>>{
 
+    
     long id = System.currentTimeMillis();
+    Counter requests = Counter.build()
+     .namespace("greetingservice")
+     .name("req_seconds").help("Total requests.").register();
     @Override
     public Mono<String> apply(CloudMessage t) {
-        return Mono.just(t.data()+" world "+id);
+        requests.inc();
+        return Mono.just(t.data()+" world "+requests.get());
     }
     
 }

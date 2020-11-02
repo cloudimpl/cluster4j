@@ -4,6 +4,8 @@
  */
 package com.cloudimpl.cluster4j.coreImpl;
 
+import com.cloudimpl.cluster.common.FluxMap;
+import com.cloudimpl.cluster.common.FluxStream;
 import com.cloudimpl.cluster4j.core.CloudService;
 import com.cloudimpl.cluster4j.core.logger.ILogger;
 import java.util.stream.Stream;
@@ -31,6 +33,7 @@ public class CloudServiceRegistry {
     try {
       service.init();
     } catch (Exception ex) {
+        logger.exception(ex,"error registering service {0}", service.getDescriptor());
       services.remove(service.id());
     }
     if (service instanceof LocalCloudService)
@@ -45,9 +48,9 @@ public class CloudServiceRegistry {
     }
   }
 
-  public void unregisterByNodeId(String nodeId) {
-    logger.info("unregister by nodeid {0}", nodeId);
-    services().filter(srv -> srv.nodeId().equals(nodeId)).forEach(srv -> unregister(srv.id()));
+  public void unregisterByMemberId(String memberId) {
+    logger.info("unregister by memberId {0}", memberId);
+    services().filter(srv -> srv.memberId().equals(memberId)).forEach(srv -> unregister(srv.id()));
   }
 
   public Flux<FluxStream.Event<String, CloudService>> flux() {
@@ -62,6 +65,11 @@ public class CloudServiceRegistry {
     return services.values().stream();
   }
 
+  public CloudService findLocalByName(String name)
+  {
+      return localServices.values().stream().filter(s->s.name().equals(name)).findFirst().orElse(null);
+  }
+  
   public CloudService findLocal(String id) {
     CloudService service = localServices.get(id);
     if (service == null)

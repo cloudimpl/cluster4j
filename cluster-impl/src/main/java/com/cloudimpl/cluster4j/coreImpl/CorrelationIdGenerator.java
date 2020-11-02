@@ -15,4 +15,9 @@ public class CorrelationIdGenerator {
   public String nextCid() {
     return cidPrefix + "-" + counter.incrementAndGet();
   }
+  
+  public String getId(String suffix)
+  {
+      return  cidPrefix + "-" + suffix;
+  }
 }

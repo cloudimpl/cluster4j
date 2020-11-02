@@ -21,73 +21,78 @@ import reactor.core.publisher.Mono;
  */
 public class LocalCloudService implements CloudService {
 
-  private final String id;
-  private final Supplier<String> nodeIdProvider;
-  private final String name;
-  private Function<CloudMessage, Publisher> function;
-  private final CloudServiceDescriptor descriptor;
-  private final Injector injector;
+    private final String id;
+    private final Supplier<String> memberIdProvider;
+    private final String nodeId;
+    private final String name;
+    private Function<CloudMessage, Publisher> function;
+    private final CloudServiceDescriptor descriptor;
+    private final Injector injector;
 
-  public LocalCloudService(Supplier<String> nodeIdProvider, Injector injector, CloudServiceDescriptor descriptor) {
-    this.nodeIdProvider = nodeIdProvider;
-    this.id = descriptor.getServiceId();
-    this.name = descriptor.getName();
-    this.function = null;
-    this.descriptor = descriptor;
-    this.injector = injector;
-  }
+    public LocalCloudService(Supplier<String> memberIdProvider, String nodeId, Injector injector, CloudServiceDescriptor descriptor) {
+        this.memberIdProvider = memberIdProvider;
+        this.id = descriptor.getServiceId();
+        this.name = descriptor.getName();
+        this.function = null;
+        this.descriptor = descriptor;
+        this.injector = injector;
+        this.nodeId = nodeId;
+    }
 
-  @Override
-  public void init() {
-    Injector inject = injector.with("@srvId", id).with("@srvName", name);
-    this.function = CloudUtil.newInstance(inject, descriptor.getFunctionType());
-  }
+    @Override
+    public void init() {
+        Injector inject = injector.with("@srvId", id).with("@srvName", name);
+        this.function = CloudUtil.newInstance(inject, descriptor.getFunctionType());
+    }
 
-  @Override
-  public boolean isLocal()
-  {
-      return true;
-  }
-  
-  @Override
-  public String id() {
-    return id;
-  }
+    @Override
+    public boolean isLocal() {
+        return true;
+    }
 
-  @Override
-  public String nodeId() {
-    return nodeIdProvider.get();
-  }
+    @Override
+    public String id() {
+        return id;
+    }
 
-  @Override
-  public String name() {
-    return name;
-  }
+    @Override
+    public String nodeId() {
+        return nodeId;
+    }
 
-  
-  @Override
-  public <T> Mono<T> requestReply(CloudMessage msg) {
-    return Mono.from(function.apply(msg));
-  }
+    @Override
+    public String memberId() {
+        return memberIdProvider.get();
+    }
 
-  @Override
-  public <T> Flux<T> requestStream(CloudMessage msg) {
-    return Flux.from(function.apply(msg));
-  }
+    @Override
+    public String name() {
+        return name;
+    }
 
-  @Override
-  public <T> Mono<Void> send(CloudMessage msg) {
-    return Mono.from(function.apply(msg));
-  }
+    @Override
+    public <T> Mono<T> requestReply(CloudMessage msg) {
+        return Mono.from(function.apply(msg));
+    }
 
-  @Override
-  public CloudServiceDescriptor getDescriptor() {
-    return descriptor;
-  }
+    @Override
+    public <T> Flux<T> requestStream(CloudMessage msg) {
+        return Flux.from(function.apply(msg));
+    }
 
-  @Override
-  public String toString() {
-    return "LocalCloudService{" + "id=" + id + ", nodeId=" + nodeId() + ", name=" + name + '}';
-  }
+    @Override
+    public <T> Mono<Void> send(CloudMessage msg) {
+        return Mono.from(function.apply(msg));
+    }
+
+    @Override
+    public CloudServiceDescriptor getDescriptor() {
+        return descriptor;
+    }
+
+    @Override
+    public String toString() {
+        return "LocalCloudService{" + "id=" + id + ", nodeId=" + nodeId() + ", name=" + name + '}';
+    }
 
 }

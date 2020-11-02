@@ -11,7 +11,7 @@ import com.cloudimpl.cluster4j.core.Inject;
 import com.cloudimpl.cluster4j.core.Named;
 import com.cloudimpl.cluster4j.core.RouterException;
 import com.cloudimpl.cluster4j.coreImpl.CloudServiceRegistry;
-import com.cloudimpl.cluster4j.coreImpl.FluxStream;
+import com.cloudimpl.cluster.common.FluxStream;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;

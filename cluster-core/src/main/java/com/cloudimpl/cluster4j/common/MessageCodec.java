@@ -4,7 +4,7 @@
  */
 package com.cloudimpl.cluster4j.common;
 
-import io.netty.buffer.ByteBuf;
+import io.rsocket.Payload;
 import java.nio.ByteBuffer;
 
 /**
@@ -13,9 +13,8 @@ import java.nio.ByteBuffer;
  */
 public interface MessageCodec {
 
-  <T> T decode(Class<T> cls, ByteBuf buffer);
-
-  <T> T decode(Class<T> cls, ByteBuffer buffer);
+   
+  Object decode(Payload payload);
 
   ByteBuffer encode(Object obj);
 

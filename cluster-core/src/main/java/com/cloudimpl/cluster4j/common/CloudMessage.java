@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public class CloudMessage {
   private final Object data;
-  private final Map<String, String> meta;
+  protected final Map<String, String> meta;
   private final String key;
 
   public CloudMessage(Object data, String key) {

@@ -8,7 +8,7 @@
     </parent>
     <artifactId>cluster-impl</artifactId>
     <packaging>jar</packaging>
-     <properties>
+    <properties>
         <cloudImpl.errorCode.enable>true</cloudImpl.errorCode.enable>
         <cloudImpl.errorCode.package>com.cloudimpl.cluster4j.collection.error</cloudImpl.errorCode.package>
         <cloudImpl.errorCode.errorFileName>Collection</cloudImpl.errorCode.errorFileName>
@@ -25,6 +25,16 @@
             <artifactId>reactor-extra</artifactId>
             <version>3.2.2.RELEASE</version>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js</artifactId>
+            <version>20.2.0</version>
+        </dependency>  
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js-scriptengine</artifactId>
+            <version>20.2.0</version>
         </dependency>
     </dependencies>
 </project>

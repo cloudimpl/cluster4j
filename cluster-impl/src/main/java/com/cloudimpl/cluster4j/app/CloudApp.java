@@ -15,6 +15,10 @@
  */
 package com.cloudimpl.cluster4j.app;
 
+import com.cloudimpl.cluster4j.common.CloudMessage;
+import com.cloudimpl.cluster4j.common.GsonCodec;
+import com.cloudimpl.cluster4j.common.ObjectDecoder;
+import com.cloudimpl.cluster4j.common.ObjectEncoder;
 import com.cloudimpl.cluster4j.core.Injector;
 import com.cloudimpl.cluster4j.logger.ConsoleLogWriter;
 import com.cloudimpl.cluster4j.logger.LogWriter;
@@ -26,14 +30,17 @@ import picocli.CommandLine;
  * @author nuwansa
  */
 public class CloudApp {
-
+     static{
+        GsonCodec.registerTypeAdaptor(CloudMessage.class, () -> new ObjectDecoder(), () -> new ObjectEncoder());
+    }
     public static void main(String[] args) throws InterruptedException {
         AppConfig appConfig = new AppConfig();
         new CommandLine(appConfig).execute(args);
         Injector injector = new Injector();
         injector.bind(LogWriter.class).to(new ConsoleLogWriter());
-        ServiceLoader serviceLoader = new ServiceLoader();
-        appConfig.getNodeConfig().doOnNext(c -> {
+        ResourcesLoader serviceLoader = new ResourcesLoader();
+        appConfig.getNodeConfigBuilder().doOnNext(c->c.withServiceEndpoints(serviceLoader.getEndpoints())).map(C->C.build())
+                .doOnNext(c -> {
             CloudNode node = new CloudNode(injector, c);
             serviceLoader.init(node);
             node.start();

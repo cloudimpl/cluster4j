@@ -58,7 +58,7 @@
                                     <arg>args</arg>
                                 </args>
                                 <ports>
-                                    <port>1000</port>
+                                    <port>17000</port>
                                     <port>2000-2003/udp</port>
                                 </ports>
                                 <labels>

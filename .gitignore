@@ -29,3 +29,15 @@ target/**
 /rest-service/target/
 /cluster-seed/target/
 /rest-api/target/
+/raft-lib/target/
+/metrics-lib/target/
+/fn-core/target/
+.idea/*
+/fass-node/target/
+/cluster-common/target/
+/logger/target/
+/cloudimpl-operator/target/
+/fn-example/target/
+/cluster-network/target/
+/cluster-network-rsocket/target/
+/cluster-network-reactive/target/

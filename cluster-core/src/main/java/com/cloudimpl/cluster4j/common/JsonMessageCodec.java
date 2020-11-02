@@ -4,7 +4,7 @@
  */
 package com.cloudimpl.cluster4j.common;
 
-import io.netty.buffer.ByteBuf;
+import io.rsocket.Payload;
 import java.nio.ByteBuffer;
 
 /**
@@ -12,24 +12,31 @@ import java.nio.ByteBuffer;
  * @author nuwansa
  */
 public class JsonMessageCodec implements MessageCodec {
+    private static final MessageCodec instance;
 
-  @Override
-  public <T> T decode(Class<T> cls, ByteBuf buffer) {
-    byte[] bytes = new byte[buffer.readableBytes()];
-    buffer.readBytes(bytes);
-    return GsonCodec.decode(cls, new String(bytes));
-  }
+    static {
+        instance = new JsonMessageCodec();
+    }
 
-  @Override
-  public <T> T decode(Class<T> cls, ByteBuffer buffer) {
-    byte[] bytesArray = new byte[buffer.remaining()];
-    buffer.get(bytesArray, 0, bytesArray.length);
-    return GsonCodec.decode(cls, new String(bytesArray));
-  }
+    public static MessageCodec instance() {
+        return instance;
+    }
 
-  @Override
-  public ByteBuffer encode(Object obj) {
-    return ByteBuffer.wrap(GsonCodec.encode(obj).getBytes());
-  }
+    @Override
+    public Object decode(Payload payload) {
+        System.out.println("payload :"+payload.getDataUtf8());
+        return GsonCodec.decode(GsonCodec.toJsonObject(payload.getDataUtf8()));
+    }
+
+//  @Override
+//  public <T> T decode(Class<T> cls, ByteBuffer buffer) {
+//    byte[] bytesArray = new byte[buffer.remaining()];
+//    buffer.get(bytesArray, 0, bytesArray.length);
+//    return GsonCodec.decode(cls, new String(bytesArray));
+//  }
+    @Override
+    public ByteBuffer encode(Object obj) {
+        return ByteBuffer.wrap(GsonCodec.encodeWithType(obj).getBytes());
+    }
 
 }

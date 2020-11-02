@@ -8,12 +8,12 @@ import com.cloudimpl.cluster4j.common.CloudMessage;
 import com.cloudimpl.cluster4j.core.CloudRouter;
 import com.cloudimpl.cluster4j.core.CloudRouterDescriptor;
 import com.cloudimpl.cluster4j.core.CloudService;
-import com.cloudimpl.cluster4j.coreImpl.CloudServiceRegistry;
 import com.cloudimpl.cluster4j.core.Inject;
 import com.cloudimpl.cluster4j.core.Named;
 import com.cloudimpl.cluster4j.core.RouterException;
 import com.cloudimpl.cluster4j.core.lb.LBRequest;
 import com.cloudimpl.cluster4j.core.lb.LBResponse;
+import com.cloudimpl.cluster4j.coreImpl.CloudServiceRegistry;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
@@ -43,6 +43,7 @@ public class DynamicRouter implements CloudRouter {
 
   @Override
   public Mono<CloudService> route(CloudMessage msg) {
+      
     if (msg.getKey() == null)
       return Mono.error(new RouterException("key not found to route for service [" + topic + "]"));
     return find(msg.getKey());

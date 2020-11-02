@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-import org.apache.commons.text.lookup.StringLookupFactory;
 import picocli.CommandLine;
 import reactor.core.publisher.Mono;
 import reactor.retry.Retry;
@@ -35,7 +34,7 @@ import reactor.retry.Retry;
 public class AppConfig implements Callable<Integer> {
 
     @CommandLine.Option(names = "-gp", required = false, description = "cluster gossip port")
-    int gossipPort = -1;
+    int gossipPort = 12000;
 
     @CommandLine.Option(names = "-ws", required = false, description = "wait for seed")
     boolean waitForSeed = false;
@@ -44,7 +43,7 @@ public class AppConfig implements Callable<Integer> {
     String seedName = null;
 
     @CommandLine.Option(names = "-sp", required = false, description = "service port")
-    int servicePort = -1;
+    int servicePort = 10000;
 
     @CommandLine.Option(names = "-sd", required = false, description = "seeds nodes")
     List<String> seeds;
@@ -76,7 +75,7 @@ public class AppConfig implements Callable<Integer> {
         return servicePort;
     }
 
-    public Mono<NodeConfig> getNodeConfig() {
+    public Mono<NodeConfig.Builder> getNodeConfigBuilder() {
         NodeConfig.Builder builder = NodeConfig.builder();
         if (servicePort > 0) {
             builder.withNodePort(servicePort);
@@ -88,21 +87,25 @@ public class AppConfig implements Callable<Integer> {
             builder.withSeedNodes(getEndpoints());
         }
         if (!waitForSeed) {
-            return Mono.just(builder.build());
+            return Mono.just(builder);
         } else {
             return Mono.fromSupplier(() -> resolveDns(seedName))
                     .doOnError(thr->System.out.println(thr.getMessage()))
                     .retryWhen(Retry
                             .any()
                             .exponentialBackoffWithJitter(Duration.ofSeconds(1), Duration.ofSeconds(20))
-                    ).doOnNext(s -> builder.withSeedNodes(Address.create(s, gossipPort)))
-                    .map(s -> builder.build());
+                    )
+                    .doOnNext(s->System.out.println("seed node found : "+s))
+                    .map(s->Address.create(s, gossipPort))
+                    .doOnNext(addr->System.out.println("seed addr : "+addr))
+                    .doOnNext(addr -> builder.withSeedNodes(addr))
+                    .map(s -> builder);
         }
 
     }
 
     private String resolveDns(String serviceName) {
-        String addr = StringLookupFactory.INSTANCE.dnsStringLookup().lookup("address|" + seedName);
+        String addr = serviceName;//StringLookupFactory.INSTANCE.dnsStringLookup().lookup("address|" + seedName);
         if (addr == null) {
             throw new CloudException("service addr is null");
         }

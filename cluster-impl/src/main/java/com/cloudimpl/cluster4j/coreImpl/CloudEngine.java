@@ -25,4 +25,5 @@ public interface CloudEngine {
   CloudServiceRegistry getServiceRegistry();
 
   void registerService(String name, CloudFunction cloudFunc);
+  
 }

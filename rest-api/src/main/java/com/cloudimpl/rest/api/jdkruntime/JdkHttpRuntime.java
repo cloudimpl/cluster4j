@@ -53,6 +53,7 @@ public class JdkHttpRuntime implements RestApiRuntime {
     @Override
     public void register(Class<?> resource) {
         this.contextBuilder.getDeployment().getActualResourceClasses().add(resource);
+        
     }
 
     @Override

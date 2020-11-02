@@ -4,6 +4,7 @@
  */
 package com.cloudimpl.cluster4j.common;
 
+import java.net.InetSocketAddress;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -12,21 +13,23 @@ import reactor.core.publisher.Mono;
  *
  * @author nuwansa
  */
-public interface EndpointListener {
+public interface EndpointListener<T> {
 
-  default Mono<Void> fireAndForget(Mono<CloudMessage> msg) {
+  default void onInit(InetSocketAddress addr) {};
+  
+  default Mono<Void> fireAndForget(T msg) {
     return Mono.error(new UnsupportedOperationException("Fire and forget not implemented."));
   }
 
-  default Mono<CloudMessage> requestResponse(Mono<CloudMessage> msg) {
+  default Mono<T> requestResponse(T msg) {
     return Mono.error(new UnsupportedOperationException("Request-Response not implemented."));
   }
 
-  default Flux<CloudMessage> requestStream(Mono<CloudMessage> msg) {
+  default Flux<T> requestStream(T msg) {
     return Flux.error(new UnsupportedOperationException("Request-Stream not implemented."));
   }
 
-  default Flux<CloudMessage> requestChannel(Publisher<CloudMessage> publisher) {
+  default Flux<T> requestChannel(Publisher<T> publisher) {
     return Flux.error(new UnsupportedOperationException("Request-Channel not implemented."));
   }
 

@@ -14,6 +14,31 @@
             <artifactId>cluster-impl</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <!-- The client -->
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient</artifactId>
+            <version>0.9.0</version>
+        </dependency>
+        <!-- Hotspot JVM metrics-->
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_hotspot</artifactId>
+            <version>0.9.0</version>
+        </dependency>
+        <!-- Exposition HTTPServer-->
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_httpserver</artifactId>
+            <version>0.9.0</version>
+        </dependency>
+        <!-- Pushgateway exposition-->
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_pushgateway</artifactId>
+            <version>0.9.0</version>
+        </dependency>
     </dependencies>
     <properties>
         
@@ -44,7 +69,7 @@
                                 <image>localhost:5000/${project.groupId}/${project.artifactId}</image>
                                 <!--<credHelper>osxkeychain</credHelper>-->
                                 <tags>
-                                    <tag>${project.version}</tag>
+                                    <tag>2.1.1</tag>
                                     <tag>latest</tag>
                                 </tags>
                             </to>
@@ -56,8 +81,10 @@
                                 </jvmFlags>
                                 <mainClass>com.cloudimpl.cluster4j.app.CloudApp</mainClass>
                                 <args>
-                                    <arg>some</arg>
-                                    <arg>args</arg>
+                                    <arg>-ws</arg>
+                                    <arg>true</arg>
+                                    <arg>-sn</arg>
+                                    <arg>seed-service</arg>
                                 </args>
                                 <ports>
                                     <port>1000</port>
@@ -102,7 +129,8 @@
                                 <image>registry.hub.docker.com/nuwansa/${project.artifactId}</image>
                                 <!--<credHelper>osxkeychain</credHelper>-->
                                 <tags>
-                                    <tag>${project.version}</tag>
+                                    <!--<tag>${project.version}</tag>-->
+                                    <tag>2.1.2</tag>
                                     <tag>latest</tag>
                                 </tags>
                             </to>
@@ -114,11 +142,13 @@
                                 </jvmFlags>
                                 <mainClass>com.cloudimpl.cluster4j.app.CloudApp</mainClass>
                                 <args>
-                                    <arg>some</arg>
-                                    <arg>args</arg>
+                                    <arg>-ws</arg>
+                                    <arg>true</arg>
+                                    <arg>-sn</arg>
+                                    <arg>seed-service</arg>
                                 </args>
                                 <ports>
-                                    <port>1000</port>
+                                    <port>17000</port>
                                     <port>2000-2003/udp</port>
                                 </ports>
                                 <labels>

@@ -57,5 +57,11 @@ public class RouteEndpoint {
     return Objects.equals(this.host, other.host);
   }
 
+    @Override
+    public String toString() {
+        return "RouteEndpoint{" + "host=" + host + ", port=" + port + '}';
+    }
 
+
+  
 }

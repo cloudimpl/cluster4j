@@ -41,19 +41,19 @@
         <dependency>
             <groupId>io.scalecube</groupId>
             <artifactId>scalecube-cluster</artifactId>
-            <version>2.4.9</version>
+            <version>2.5.0</version>
             <type>jar</type>     
         </dependency>
         <dependency>
             <groupId>io.rsocket</groupId>
             <artifactId>rsocket-core</artifactId>
-            <version>0.12.1</version>
+            <version>1.0.2</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>io.rsocket</groupId>
             <artifactId>rsocket-transport-netty</artifactId>
-            <version>0.12.1</version>
+            <version>1.0.2</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -106,11 +106,35 @@
             <artifactId>picocli</artifactId>
             <version>4.4.0</version>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
             <version>1.8</version>
             <type>jar</type>
+        </dependency>
+        <!-- The client -->
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient</artifactId>
+            <version>0.9.0</version>
+        </dependency>
+        <!-- Hotspot JVM metrics-->
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_hotspot</artifactId>
+            <version>0.9.0</version>
+        </dependency>
+        <!-- Exposition HTTPServer-->
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_httpserver</artifactId>
+            <version>0.9.0</version>
+        </dependency>
+        <!-- Pushgateway exposition-->
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_pushgateway</artifactId>
+            <version>0.9.0</version>
         </dependency>
     </dependencies>
     <build>
@@ -213,6 +237,17 @@
         <module>rest-service</module>
         <module>rest-api</module>
         <module>cluster-seed</module>
+        <module>raft-lib</module>
+        <module>metrics-lib</module>
+        <module>fn-core</module>
+        <module>logger</module>
+        <module>fass-node</module>
+        <module>cluster-common</module>
+        <module>cloudimpl-operator</module>
+        <module>fn-example</module>
+        <module>cluster-network</module>
+        <module>cluster-network-rsocket</module>
+        <module>cluster-network-reactive</module>
     </modules>
     <distributionManagement>
         <snapshotRepository>
