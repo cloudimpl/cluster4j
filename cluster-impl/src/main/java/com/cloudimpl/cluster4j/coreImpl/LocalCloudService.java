@@ -21,13 +21,13 @@ import reactor.core.publisher.Mono;
  */
 public class LocalCloudService implements CloudService {
 
-    private final String id;
-    private final Supplier<String> memberIdProvider;
-    private final String nodeId;
-    private final String name;
-    private Function<CloudMessage, Publisher> function;
-    private final CloudServiceDescriptor descriptor;
-    private final Injector injector;
+    protected final String id;
+    protected final Supplier<String> memberIdProvider;
+    protected final String nodeId;
+    protected final String name;
+    protected Function<CloudMessage, Publisher> function;
+    protected final CloudServiceDescriptor descriptor;
+    protected final Injector injector;
 
     public LocalCloudService(Supplier<String> memberIdProvider, String nodeId, Injector injector, CloudServiceDescriptor descriptor) {
         this.memberIdProvider = memberIdProvider;

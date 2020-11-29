@@ -84,6 +84,16 @@ public class GsonCodec {
         return THR_GSON.get().toJson(el);
     }
 
+    public static String encodeWithType2(Object obj) {
+        JsonElement el = encodeToJson(obj);
+        if (el.isJsonObject()) {
+            JsonObject json = el.getAsJsonObject();
+            json.addProperty("_type", obj.getClass().getName());
+            el = json;
+        }
+        return THR_GSON.get().toJson(el);
+    }
+    
     public static JsonElement encodeToJsonWithType(Object obj) {
         if (obj instanceof String) {
             return new JsonPrimitive((String) obj);
@@ -115,6 +125,10 @@ public class GsonCodec {
     public static JsonObject toJsonObject(String data) {
         return THR_GSON_PARSER.get().parse(data).getAsJsonObject();
     }
+    
+    public static JsonElement toJsonElement(String data) {
+        return THR_GSON_PARSER.get().parse(data);
+    }
 
     public static <T> T decode(Class<T> clazz, Map<String, String> data) {
         if (clazz == String.class) {
@@ -131,6 +145,12 @@ public class GsonCodec {
         return THR_GSON.get().fromJson(jsonElement, clazz);
     }
 
+    public static Object decode(String json)
+    {
+        JsonElement el = JsonParser.parseString(json);
+        return decode(el);
+    }
+    
     public static Object decode(JsonElement elem) {
 
         if (elem.isJsonObject()) {

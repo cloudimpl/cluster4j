@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author nuwansa
  */
-public class AwsCollectionProvider implements CollectionProvider {
+public class AwsCollectionProvider implements CollectionProvider2 {
 
   private final AmazonDynamoDB client;
   private final DynamoDB dynamodb;

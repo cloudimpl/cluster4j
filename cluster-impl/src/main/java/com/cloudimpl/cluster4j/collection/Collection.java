@@ -13,9 +13,9 @@ import java.util.NavigableMap;
  */
 public class Collection {
 
-  private final CollectionProvider provider;
+  private final CollectionProvider2 provider;
 
-  private Collection(CollectionProvider provider) {
+  private Collection(CollectionProvider2 provider) {
     this.provider = provider;
   }
 
@@ -38,9 +38,9 @@ public class Collection {
 
   public static final class Builder {
 
-    private CollectionProvider provider;
+    private CollectionProvider2 provider;
 
-    public Builder withProvider(CollectionProvider provider) {
+    public Builder withProvider(CollectionProvider2 provider) {
       this.provider = provider;
       return this;
     }

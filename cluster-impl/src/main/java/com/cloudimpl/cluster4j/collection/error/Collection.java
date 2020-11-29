@@ -10,7 +10,7 @@ public enum Collection implements ErrorCode {
   OPERATION_NOT_SUPPORTED(2, "operation [opName] not supported"),
   KEY_VIOLATION(3, "map key violation"),
   CONSTRUCTOR_NOT_SUPPORTED(4, "constructor not supported");
-
+ 
   private final int errorNo;
 
   private final String errorFormat;

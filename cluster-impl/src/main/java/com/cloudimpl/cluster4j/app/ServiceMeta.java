@@ -20,6 +20,7 @@ import com.cloudimpl.cluster4j.core.CloudRouter;
 import com.cloudimpl.cluster4j.core.annon.CloudFunction;
 import com.cloudimpl.cluster4j.core.annon.Router;
 import com.cloudimpl.cluster4j.routers.DynamicRouter;
+import com.cloudimpl.cluster4j.routers.LeaderRouter;
 import com.cloudimpl.cluster4j.routers.NodeIdRouter;
 import com.cloudimpl.cluster4j.routers.RoundRobinRouter;
 import com.cloudimpl.cluster4j.routers.ServiceIdRouter;
@@ -62,6 +63,8 @@ public class ServiceMeta {
                 return ServiceIdRouter.class;
             case NODE_ID:
                 return NodeIdRouter.class;
+            case LEADER:
+                return LeaderRouter.class;
             default:
                 throw new CloudException(router.routerType()+" not supported");
         }

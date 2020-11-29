@@ -41,3 +41,7 @@ target/**
 /cluster-network/target/
 /cluster-network-rsocket/target/
 /cluster-network-reactive/target/
+/cluster-collection/target/
+/db4j/target/
+/cluster-collection/nbproject/
+/stream-core/target/

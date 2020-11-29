@@ -36,5 +36,10 @@
             <artifactId>js-scriptengine</artifactId>
             <version>20.2.0</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>cluster-collection</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

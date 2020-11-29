@@ -66,6 +66,7 @@ public class ResourcesLoader {
         {
             case ROUND_ROBIN:
             case SERVICE_ID:
+            case LEADER:
             case NODE_ID:
             {
                 node.registerService(meta.getFunc().name(), com.cloudimpl.cluster4j.core.CloudFunction.builder()

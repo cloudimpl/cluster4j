@@ -17,6 +17,7 @@ package com.cloudimpl.cluster.example;
 
 import com.cloudimpl.cluster4j.common.CloudMessage;
 import com.cloudimpl.cluster4j.common.RouterType;
+import com.cloudimpl.cluster4j.core.LeaderLifeCycle;
 import com.cloudimpl.cluster4j.core.annon.CloudFunction;
 import com.cloudimpl.cluster4j.core.annon.Router;
 import io.prometheus.client.Counter;
@@ -28,8 +29,8 @@ import reactor.core.publisher.Mono;
  * @author nuwansa
  */
 @CloudFunction(name = "GreetingService")
-@Router(routerType = RouterType.ROUND_ROBIN)
-public class GreetingService implements Function<CloudMessage, Mono<String>>{
+@Router(routerType = RouterType.LEADER)
+public class GreetingService implements Function<CloudMessage, Mono<String>>,LeaderLifeCycle{
 
     
     long id = System.currentTimeMillis();
@@ -40,6 +41,11 @@ public class GreetingService implements Function<CloudMessage, Mono<String>>{
     public Mono<String> apply(CloudMessage t) {
         requests.inc();
         return Mono.just(t.data()+" world "+requests.get());
+    }
+
+    @Override
+    public void onLeaderElect(String leaderId) {
+        System.out.println("leader elect : "+leaderId);
     }
     
 }

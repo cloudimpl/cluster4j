@@ -39,7 +39,7 @@ public class FirstService implements Function<CloudMessage, Mono<String>>{
 
     public FirstService(@Named("RRHnd") BiFunction<String, Object, Mono> rrHnd) throws IOException {
         DefaultExports.initialize();
-        io.prometheus.client.exporter.HTTPServer httpServer = new HTTPServer(50000,true);
+        //io.prometheus.client.exporter.HTTPServer httpServer = new HTTPServer(50000,true);
         Flux.interval(Duration.ofSeconds(5))
                 .flatMap(i->rrHnd.apply("GreetingService", "hello"+i).doOnNext(c->System.out.println(c)))
                 .doOnError(e->((Throwable)e).printStackTrace())

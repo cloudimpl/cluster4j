@@ -11,7 +11,7 @@ import java.util.NavigableMap;
  *
  * @author nuwansa
  */
-public interface CollectionProvider {
+public interface CollectionProvider2 {
 
   <K, V> Map<K, V> createMap(String identifier, String... valComparator);
 

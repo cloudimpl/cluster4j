@@ -15,6 +15,9 @@
  */
 package com.cloudimpl.cluster4j.app;
 
+import com.cloudimpl.cluster.collection.CollectionOptions;
+import com.cloudimpl.cluster.collection.CollectionProvider;
+import com.cloudimpl.cluster.collection.aws.AwsCollectionProvider;
 import com.cloudimpl.cluster4j.common.CloudMessage;
 import com.cloudimpl.cluster4j.common.GsonCodec;
 import com.cloudimpl.cluster4j.common.ObjectDecoder;
@@ -38,6 +41,8 @@ public class CloudApp {
         new CommandLine(appConfig).execute(args);
         Injector injector = new Injector();
         injector.bind(LogWriter.class).to(new ConsoleLogWriter());
+        injector.bind(CollectionProvider.class).to(new AwsCollectionProvider("http://localhost:4566"));
+        injector.nameBind("leaderOptions",CollectionOptions.builder().withOption("TableName", "Test").build());
         ResourcesLoader serviceLoader = new ResourcesLoader();
         appConfig.getNodeConfigBuilder().doOnNext(c->c.withServiceEndpoints(serviceLoader.getEndpoints())).map(C->C.build())
                 .doOnNext(c -> {

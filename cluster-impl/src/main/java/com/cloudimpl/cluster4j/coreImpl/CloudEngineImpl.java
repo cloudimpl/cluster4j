@@ -9,8 +9,11 @@ import com.cloudimpl.cluster4j.core.CloudFunction;
 import com.cloudimpl.cluster4j.core.CloudServiceDescriptor;
 import com.cloudimpl.cluster4j.core.CloudUtil;
 import com.cloudimpl.cluster4j.core.Injector;
+import com.cloudimpl.cluster4j.core.logger.ILogger;
+import com.cloudimpl.cluster4j.le.LeaderElectionManager;
 import com.cloudimpl.cluster4j.logger.Logger;
 import com.cloudimpl.cluster4j.node.NodeConfig;
+import com.cloudimpl.cluster4j.routers.LeaderRouter;
 import io.prometheus.client.exporter.HTTPServer;
 import java.io.IOException;
 import java.util.function.BiFunction;
@@ -33,6 +36,7 @@ public class CloudEngineImpl implements CloudEngine {
     private final CorrelationIdGenerator idGen;
     private final NodeConfig config;
     private final Supplier<String> memberIdProvider;
+    private final LeaderElectionManager elMan;
     public CloudEngineImpl(Supplier<String> memberIdProvider,String id, Injector injector, NodeConfig config) {
         this.injector = injector;
         this.id = id;
@@ -40,19 +44,22 @@ public class CloudEngineImpl implements CloudEngine {
         idGen = new CorrelationIdGenerator(id);
         this.config = config;
         rootLogger = injector.inject(Logger.class);
+        this.elMan = injector.inject(LeaderElectionManager.class);
         this.serviceRegistry = new CloudServiceRegistry(rootLogger);
         injector.bind(CloudServiceRegistry.class).to(serviceRegistry);
 
         injector.bind(Logger.class).to(rootLogger);
+        injector.bind(ILogger.class).to(rootLogger);
         injector.bind(Injector.class).to(injector);
         injector.bind(CloudEngine.class).to(this);
+        injector.bind(LeaderElectionManager.class).to(this.elMan);
         this.routerRepository = injector.inject(CloudRouterRepository.class);
         this.routerRepository.subscribe(serviceRegistry.flux());
-        try {
-            HTTPServer server = new HTTPServer(1234);
-        } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(CloudEngineImpl.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            HTTPServer server = new HTTPServer(1234);
+//        } catch (IOException ex) {
+//            java.util.logging.Logger.getLogger(CloudEngineImpl.class.getName()).log(Level.SEVERE, null, ex);
+//        }
         registerHandlers();
     }
 
@@ -108,8 +115,16 @@ public class CloudEngineImpl implements CloudEngine {
                 .withServiceId(cloudFunc.getId().isEmpty()?idGen.nextCid():idGen.getId(cloudFunc.getId()))
                 .withServicePort(config.getNodePort())
                 .withHostAddress(CloudUtil.getHostIpAddr()).build();
-
-        serviceRegistry.register(new LocalCloudService(memberIdProvider,id, injector, serviceDesc));
+        if(cloudFunc.getRouterDesc().getRouterType() == LeaderRouter.class)
+        {
+            serviceRegistry.register(new LeaderLocalCloudService(memberIdProvider,id, injector, serviceDesc,this.elMan,
+                    this.rootLogger,this.serviceRegistry));
+        }
+        else
+        {
+            serviceRegistry.register(new LocalCloudService(memberIdProvider,id, injector, serviceDesc));
+        }
+        
     }
 
     private CloudMessage buildMsg(String topic, Object req) {
