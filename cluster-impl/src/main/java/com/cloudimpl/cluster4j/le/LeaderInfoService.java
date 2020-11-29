@@ -43,7 +43,7 @@ public class LeaderInfoService implements Function<CloudMessage, Flux<LeaderInfo
     public Flux<LeaderInfoResponse> apply(CloudMessage req) {
         LeaderInfoRequest leaderReq = req.data();
         return this.elecMan.flux().map(e->e.getValue()).filter(info->info.getLeaderGroup().equals(leaderReq.getLeaderGroup()))
-                .map(info->new LeaderInfoResponse(info.getLeaderGroup(),info.getLeaderId()));
+                .map(info->new LeaderInfoResponse(info));
     }
     
 }

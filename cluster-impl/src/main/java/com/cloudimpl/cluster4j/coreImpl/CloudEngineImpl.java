@@ -118,7 +118,7 @@ public class CloudEngineImpl implements CloudEngine {
         if(cloudFunc.getRouterDesc().getRouterType() == LeaderRouter.class)
         {
             serviceRegistry.register(new LeaderLocalCloudService(memberIdProvider,id, injector, serviceDesc,this.elMan,
-                    this.rootLogger,this.serviceRegistry));
+                    this.rootLogger,this.serviceRegistry,this::requestStream));
         }
         else
         {

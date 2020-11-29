@@ -20,21 +20,21 @@ package com.cloudimpl.cluster4j.le;
  * @author nuwansa
  */
 public class LeaderInfoResponse {
-    private final String leaderGroup;
-    private final String leaderId;
-
-    public LeaderInfoResponse(String leaderGroup, String leaderId) {
-        this.leaderGroup = leaderGroup;
-        this.leaderId = leaderId;
+    private final LeaderElection.LeaderInfo info;
+    public LeaderInfoResponse(LeaderElection.LeaderInfo info) {
+        this.info = info;
     }
 
     public String getLeaderGroup() {
-        return leaderGroup;
+        return info.getLeaderGroup();
     }
 
     public String getLeaderId() {
-        return leaderId;
+        return info.getLeaderId();
     }
     
-    
+    public LeaderElection.LeaderInfo getLeaderInfo()
+    {
+        return this.info;
+    }
 }

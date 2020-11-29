@@ -83,4 +83,8 @@ public class CloudServiceRegistry {
       throw new ServiceRegistryException("service with id " + id + " not found");
     return service;
   }
+  
+  public boolean isServiceExist(String id){
+      return services.get(id) != null;
+  }
 }

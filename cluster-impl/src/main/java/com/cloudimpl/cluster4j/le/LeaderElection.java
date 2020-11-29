@@ -10,6 +10,7 @@ import com.cloudimpl.cluster4j.core.logger.ILogger;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -33,7 +34,7 @@ public class LeaderElection {
     private final Map<String, LeaderInfo> dataStore;
     private final String memberId;
     private final String leaderGroup;
-    private  Listener listener;
+    private Listener listener;
     private int count = 0;
     public MemberStatus status;
     private LeaderInfo leaderInfo;
@@ -41,16 +42,16 @@ public class LeaderElection {
     private final ScheduledExecutorService schedular;
 
     private final Set<String> members;
-    private final Queue<Pair<Boolean, String>> pendingMembers;
+    private final Queue<Object> pendingEvents;
     private final FluxMap<String, LeaderInfo> leaderMap;
     private long leaderExpirePeriod = 10000;
-    private ILogger logger;
+    private final ILogger logger;
     private ScheduledFuture<?> timerHnd;
 
     protected LeaderElection(String leaderGroup, String memberId, Map<String, LeaderInfo> dataStore,
             long leaderExpirePeriod,
-           FluxMap<String, LeaderInfo> leaderMap, ILogger logger) {
-        this.logger = logger.createSubLogger("LeaderElection", leaderGroup+"-"+memberId);
+            FluxMap<String, LeaderInfo> leaderMap, ILogger logger) {
+        this.logger = logger.createSubLogger("LeaderElection", leaderGroup + "-" + memberId);
         this.dataStore = dataStore;
         this.leaderMap = leaderMap;
         this.memberId = memberId;
@@ -60,13 +61,23 @@ public class LeaderElection {
         this.schedular = Executors.newSingleThreadScheduledExecutor();
         this.members = new ConcurrentSkipListSet<>();
         this.members.add(memberId);
-        this.pendingMembers = new ConcurrentLinkedQueue<>();
+        this.pendingEvents = new ConcurrentLinkedQueue<>();
         this.leaderExpirePeriod = leaderExpirePeriod;
     }
 
     public void run(Listener listener) {
         this.listener = listener;
-        timerHnd = schedular.scheduleAtFixedRate(this::onTick, 1, 1, TimeUnit.SECONDS);
+        timerHnd = schedular.scheduleAtFixedRate(this::onTick, 5, 1, TimeUnit.SECONDS);
+    }
+
+    public void reset() {
+        if (timerHnd != null) {
+            timerHnd.cancel(false);
+        }
+        Random r = new Random(System.currentTimeMillis());
+        int initialDelay = 3000 + r.nextInt(2000);
+        timerHnd = schedular.scheduleAtFixedRate(this::onTick, initialDelay, 1000, TimeUnit.MILLISECONDS);
+        logger.info("reset with initial delay {0}", initialDelay);
     }
 
     public void close() {
@@ -92,14 +103,19 @@ public class LeaderElection {
         }
     }
 
+    public void addLeaderInfo(LeaderInfo info) {
+        logger.info("add leader info {0}", info);
+        pendingEvents.add(info);
+    }
+
     public void addMember(String memberId) {
         logger.info("add member {0}", memberId);
-        pendingMembers.add(new Pair<>(true, memberId));
+        pendingEvents.add(new MemberEvent(memberId, true));
     }
 
     public void removeMember(String memberId) {
         logger.info("remove member {0}", memberId);
-        pendingMembers.add(new Pair<>(false, memberId));
+        pendingEvents.add(new MemberEvent(memberId, false));
     }
 
     private boolean isMember(String memberId) {
@@ -110,33 +126,43 @@ public class LeaderElection {
         return leaderExpirePeriod;
     }
 
-    private void processQueue() {
-        Pair<Boolean, String> pair;
-        while ((pair = pendingMembers.poll()) != null) {
-            boolean ok;
-            if (pair.getKey()) {
-                ok = members.add(pair.getValue());
-            } else {
-                ok = members.remove(pair.getValue());
-            }
-            if (leaderInfo != null) {
-                if (pair.getKey() && ok) {
-                    if (leaderInfo.getLeaderId().equals(pair.getValue())) {
-                        onLeaderChange(leaderInfo);
-                    }
-                } else if (ok) {
-                    if (leaderInfo.getLeaderId().equals(pair.getValue())) {
-                        status = MemberStatus.CANDIDATE;
+    private boolean  processQueue() {
+        Object event;
+        while ((event = pendingEvents.poll()) != null) {
+            if (event instanceof MemberEvent) {
+                MemberEvent memberEvent = (MemberEvent) event;
+                boolean ok;
+                if (memberEvent.isAdded()) {
+                    ok = members.add(memberEvent.getMemberId());
+                } else {
+                    ok = members.remove(memberEvent.getMemberId());
+                }
+                if (leaderInfo != null) {
+                    if (memberEvent.isAdded() && ok) {
+                        if (leaderInfo.getLeaderId().equals(memberEvent.getMemberId())) {
+                            onLeaderChange(leaderInfo);
+                        }
+                    } else if (ok) {
+                        if (leaderInfo.getLeaderId().equals(memberEvent.getMemberId())) {
+                            reset();
+                            status = MemberStatus.CANDIDATE;
+                            return false;
+                        }
                     }
                 }
+            } else if (event instanceof LeaderInfo) {
+                updateLeaderInfo((LeaderInfo) event);
             }
+
         }
+        return true;
     }
 
     protected void onTick() {
         logger.debug("tick");
-        processQueue();
         try {
+            if(!processQueue())
+                return;
             LeaderInfo newInfo = null;
             switch (status) {
                 case FOLLOWER:
@@ -146,9 +172,12 @@ public class LeaderElection {
                         if (newInfo != null) {
                             onLeaderChange(newInfo);
                         } else {
+                            reset();
                             status = MemberStatus.CANDIDATE; // no leader found , become a candidate
                         }
                     } else if (!isMember(leaderInfo.leaderId)) {
+                        logger.info("leader {0} is not in the member list and leader outdated", leaderInfo.leaderId);
+                        reset();
                         status = MemberStatus.CANDIDATE; // leader not in the member list
                     }
                     break;
@@ -170,6 +199,7 @@ public class LeaderElection {
                         newInfo = updateLeader();
                         if (newInfo != null && !isLeaderValid(newInfo)) {
                             logger.info("leader hb failed no valid leader found.become candidate {0}", leaderInfo);
+                            reset();
                             status = MemberStatus.CANDIDATE; // stale leader found. become a candidate.
                             leaderInfo = newInfo;
                             newInfo = null;
@@ -202,10 +232,12 @@ public class LeaderElection {
     }
 
     private boolean isLeaderValid(LeaderInfo info) {
-        if (System.currentTimeMillis() - info.getTime() > getLeaderExpirePeriod()) {
+        long time = System.currentTimeMillis();
+        if (time - info.getTime() > getLeaderExpirePeriod()) {
+            logger.info("leader is invalid . timeout {0}", (time - info.getTime()));
             return false;
         }
-        logger.info("leader is valid . timeout {0}", (System.currentTimeMillis() - info.getTime()));
+        logger.info("leader is valid . timeout {0}", (time - info.getTime()));
         return true;
     }
 
@@ -228,6 +260,22 @@ public class LeaderElection {
         } else {
             throw new LeaderElectionException("not a leader to update the leadership");
         }
+    }
+
+    private boolean updateLeaderInfo(LeaderInfo info) {
+
+        if (leaderInfo == null || info.getVersion() > leaderInfo.getVersion()) {
+            this.leaderInfo = info;
+            logger.info("leader info updated: {0}", info);
+            if (!leaderInfo.getLeaderId().equals(this.memberId)) {
+                this.status = MemberStatus.FOLLOWER;
+                logger.info("new leader found and becoming follower");
+            }
+            onLeaderChange(info);
+            return true;
+        }
+        logger.info("leader info not updated. current {0} and apply {1}", this.leaderInfo, info);
+        return false;
     }
 
     // if stale , update existing record, other wise insert if not exist
@@ -273,7 +321,7 @@ public class LeaderElection {
             logger.info("load valid leader {0}", info);
             return info;
         }
-        logger.info("valid leader not found- info : {0}",info);
+        logger.info("valid leader not found- info : {0}", info);
         return null;
     }
 
@@ -353,4 +401,25 @@ public class LeaderElection {
 
         void leaderChange(LeaderElection le, String leaderId);
     }
+
+    public static final class MemberEvent {
+
+        private final String memberId;
+        private final boolean added;
+
+        public MemberEvent(String memberId, boolean added) {
+            this.memberId = memberId;
+            this.added = added;
+        }
+
+        public boolean isAdded() {
+            return added;
+        }
+
+        public String getMemberId() {
+            return memberId;
+        }
+
+    }
+
 }

@@ -47,6 +47,7 @@ public class LeaderRouter implements CloudRouter {
     private final ILogger logger;
     private final CloudServiceRegistry registry;
     private CloudService serviceInstance;
+    private int nextPossibleId = 0;
     @Inject
     public LeaderRouter(@Named("@topic") String topic, @Named("RSHnd") BiFunction<String, CloudMessage, Flux<LeaderInfoResponse>> rsHnd,
             ILogger logger,
@@ -93,8 +94,11 @@ public class LeaderRouter implements CloudRouter {
         return serviceInstance;
     }
     private synchronized String getNodeId() {
+        if(nextPossibleId >= leaderServices.size())
+            nextPossibleId = 0;
         if (!leaderServices.isEmpty()) {
-            return leaderServices.get(0);
+            
+            return leaderServices.get(nextPossibleId++);
         }
         throw new CloudException("nodeId not found");
     }

@@ -26,7 +26,7 @@ import java.util.NavigableMap;
 public class MapTest {
     public static void main(String[] args) {
         AwsCollectionProvider provider = new AwsCollectionProvider("http://localhost:4566");
-      //  provider.createMapTable("Test");
+        provider.createMapTable("Test");
        Map<String,Student> map = provider.createHashMap("test", CollectionOptions.builder().withOption("TableName", "Test").build());
        Student s = map.put("test",new Student("aa"));
         System.out.println("contain key : "+map.containsKey("test"));
