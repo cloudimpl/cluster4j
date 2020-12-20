@@ -9,6 +9,9 @@ import com.cloudimpl.cluster4j.core.lb.LBRequest;
 import com.cloudimpl.cluster4j.common.CloudMessage;
 import com.cloudimpl.cluster4j.coreImpl.CloudServiceRegistry;
 import com.cloudimpl.cluster.common.FluxStream;
+import com.cloudimpl.cluster4j.common.RouterType;
+import com.cloudimpl.cluster4j.core.annon.CloudFunction;
+import com.cloudimpl.cluster4j.core.annon.Router;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
@@ -22,6 +25,8 @@ import reactor.core.publisher.Mono;
  *
  * @author nuwansa
  */
+@CloudFunction(name = "TopicLoadBalancer")
+@Router(routerType = RouterType.LEADER)
 public class TopicLoadBalancer implements Function<CloudMessage, Mono<LBResponse>> {
 
   private final Map<String, TopicHandler> handlers = new ConcurrentHashMap<>();
@@ -37,7 +42,6 @@ public class TopicLoadBalancer implements Function<CloudMessage, Mono<LBResponse
     LBRequest t = msg.data();
     return hnd(t.getTopic()).map(h -> h.assign(t.getKey())).map(r -> new LBResponse(t.getTopic(), r, t.getKey()));
   }
-
 
   private Mono<TopicHandler> hnd(String name) {
     return Mono.just(handlers.computeIfAbsent(name, n -> new TopicHandler(n, reg)));
@@ -78,8 +82,7 @@ public class TopicLoadBalancer implements Function<CloudMessage, Mono<LBResponse
 
       bucket = mapBuckets.values().stream().min(Comparator.comparing(Bucket::size));
       if (bucket.isPresent()) {
-        bucket.get().add(key);
-        return bucket.get().getId();
+        return bucket.get().add(key).getId();
       } else {
         throw new TopicLoadBalancerException("no service found to loadbalance for topic " + name);
       }
@@ -95,8 +98,9 @@ public class TopicLoadBalancer implements Function<CloudMessage, Mono<LBResponse
       this.id = id;
     }
 
-    public void add(String key) {
+    public Bucket add(String key) {
       this.keySet.add(key);
+      return this;
     }
 
     public boolean hasKey(String key) {

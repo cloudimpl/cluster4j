@@ -45,3 +45,4 @@ target/**
 /db4j/target/
 /cluster-collection/nbproject/
 /stream-core/target/
+/db4j/nbproject/

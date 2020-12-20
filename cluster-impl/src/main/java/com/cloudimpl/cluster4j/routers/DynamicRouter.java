@@ -27,7 +27,7 @@ public class DynamicRouter implements CloudRouter {
 
   private final String topic;
   private final CloudRouterDescriptor desc;
-  private final Map<String, CloudService> mapServices = new ConcurrentHashMap<>();
+  private final Map<String, Mono<CloudService>> mapServices = new ConcurrentHashMap<>();
   private final BiFunction<String, Object, Mono> rrHnd;
   private final CloudServiceRegistry registry;
 
@@ -40,7 +40,6 @@ public class DynamicRouter implements CloudRouter {
     this.registry = serviceRegistry;
   }
 
-
   @Override
   public Mono<CloudService> route(CloudMessage msg) {
       
@@ -49,11 +48,10 @@ public class DynamicRouter implements CloudRouter {
     return find(msg.getKey());
   }
 
-
   private Mono<CloudService> find(String key) {
-    CloudService service = mapServices.get(key);
+    Mono<CloudService> service = mapServices.get(key);
     if (service != null)
-      return Mono.just(service);
+      return service;
     return rrHnd.apply(this.desc.getLoadBalancer(), new LBRequest(topic, key))
         .flatMap(r -> updateMap((LBResponse) r));
   }
@@ -62,7 +60,8 @@ public class DynamicRouter implements CloudRouter {
     CloudService service = registry.findService(resp.getId());
     if (service == null)
       return Mono.error(new RouterException("service [" + topic + "] not found"));
-    mapServices.put(resp.getKey(), service);
-    return Mono.just(service);
+    Mono<CloudService> serviceMono = Mono.just(service);
+    mapServices.put(resp.getKey(), serviceMono);
+    return serviceMono;
   }
 }

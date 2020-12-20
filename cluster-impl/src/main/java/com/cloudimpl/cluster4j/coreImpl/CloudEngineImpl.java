@@ -14,11 +14,8 @@ import com.cloudimpl.cluster4j.le.LeaderElectionManager;
 import com.cloudimpl.cluster4j.logger.Logger;
 import com.cloudimpl.cluster4j.node.NodeConfig;
 import com.cloudimpl.cluster4j.routers.LeaderRouter;
-import io.prometheus.client.exporter.HTTPServer;
-import java.io.IOException;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
-import java.util.logging.Level;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -47,7 +44,7 @@ public class CloudEngineImpl implements CloudEngine {
         this.elMan = injector.inject(LeaderElectionManager.class);
         this.serviceRegistry = new CloudServiceRegistry(rootLogger);
         injector.bind(CloudServiceRegistry.class).to(serviceRegistry);
-
+        injector.nameBind("@serviceFlux",this.serviceRegistry.flux());
         injector.bind(Logger.class).to(rootLogger);
         injector.bind(ILogger.class).to(rootLogger);
         injector.bind(Injector.class).to(injector);

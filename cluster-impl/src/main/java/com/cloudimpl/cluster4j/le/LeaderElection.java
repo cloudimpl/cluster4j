@@ -75,7 +75,7 @@ public class LeaderElection {
             timerHnd.cancel(false);
         }
         Random r = new Random(System.currentTimeMillis());
-        int initialDelay = 3000 + r.nextInt(2000);
+        int initialDelay = 10000 + r.nextInt(4000); //TODO improve this
         timerHnd = schedular.scheduleAtFixedRate(this::onTick, initialDelay, 1000, TimeUnit.MILLISECONDS);
         logger.info("reset with initial delay {0}", initialDelay);
     }

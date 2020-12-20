@@ -17,6 +17,7 @@ package com.cloudimpl.cluster.collection.aws;
 
 import java.time.Duration;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  *
@@ -38,6 +39,17 @@ public class FluxTest {
         Flux.fromArray(new Integer[]{0,1}).flatMap(i->fluxArr[i].onErrorResume(thr->Flux.empty())).doOnNext(System.out::println).doOnError(thr->thr.printStackTrace())
                 .doOnTerminate(()->System.out.println("terminated"))
                 .subscribe();
+        
+        Mono.just("kkk").onErrorResume(thr-> Mono.just("ccc"))
+                .doOnNext(b->{throw new RuntimeException("bbb");})
+                .onErrorMap(err->err)
+      //          .onErrorResume(thr-> Mono.just("ccc"))
+                //.doOnNext(System.out::println)
+        .subscribe();
+        
+       Mono<String> mono =  Mono.just("aaaaa");
+       mono.doOnNext(System.out::println).subscribe();
+       mono.doOnNext(System.out::println).subscribe();
         Thread.sleep(100000000);
     }
 }
