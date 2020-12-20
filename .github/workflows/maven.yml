@@ -19,7 +19,7 @@ jobs:
     - run: echo $key1
     - uses: actions/checkout@v2
     - name: Set up JDK 1.11
-      uses: joschi/setup-jdk@v1
+      uses: joschi/setup-jdk@v2
       with:
         java-version: '11'
         
@@ -30,7 +30,9 @@ jobs:
     - name: Extract CLUSTER_VERSION
       if: success()
       run: |
-        export VERSION=`cat pom.xml | grep "<version>" | head -n 1 |  awk -F'>' '{print $2}' | awk -F'<' '{print $1}'` && echo "::set-env name=CLUSTER_VERSION::${VERSION}.${GITHUB_RUN_NUMBER}"
+        export VERSION=`cat pom.xml | grep "<version>" | head -n 1 |  awk -F'>' '{print $2}' | awk -F'<' '{print $1}'`
+        export CLUSTER_VERSION=${VERSION}.${GITHUB_RUN_NUMBER}
+        echo "CLUSTER_VERSION=${CLUSTER_VERSION}" > ${GITHUB_ENV}
         echo $CLUSTER_VERSION
         
     - name: Set errcode build number
@@ -49,6 +51,7 @@ jobs:
 #         mvn deploy
  
     - name: Release Maven package
+      if: success() && github.event_name == 'push'
       uses: samuelmeuli/action-maven-publish@v1
       with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
