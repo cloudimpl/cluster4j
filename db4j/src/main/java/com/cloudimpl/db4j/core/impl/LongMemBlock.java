@@ -26,6 +26,7 @@ public class LongMemBlock extends ByteBufMemBlock {
 
   public int allocate(LongBuffer longBuffer, int pageSize) {
     longBuffer.position(offset).put(offset);
+    return 0;
   }
 
   @Override
