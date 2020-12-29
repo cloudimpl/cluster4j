@@ -10,7 +10,7 @@ services:
       - "4571:4571"
       - "8055:8080"
     environment:
-      - SERVICES=sqs,s3
+      - SERVICES=sqs,s3,dynamodb
       - DEBUG=1
       - DATA_DIR=${DATA_DIR- }
       - PORT_WEB_UI=${PORT_WEB_UI- }

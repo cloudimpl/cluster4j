@@ -20,8 +20,8 @@ import com.cloudimpl.cluster.collection.CollectionProvider;
 import com.cloudimpl.cluster.collection.aws.AwsCollectionProvider;
 import com.cloudimpl.cluster4j.common.CloudMessage;
 import com.cloudimpl.cluster4j.common.GsonCodec;
-import com.cloudimpl.cluster4j.common.ObjectDecoder;
-import com.cloudimpl.cluster4j.common.ObjectEncoder;
+import com.cloudimpl.cluster4j.common.CloudMessageDecoder;
+import com.cloudimpl.cluster4j.common.CloudMessageEncoder;
 import com.cloudimpl.cluster4j.core.Injector;
 import com.cloudimpl.cluster4j.logger.ConsoleLogWriter;
 import com.cloudimpl.cluster4j.logger.LogWriter;
@@ -34,7 +34,7 @@ import picocli.CommandLine;
  */
 public class CloudApp {
      static{
-        GsonCodec.registerTypeAdaptor(CloudMessage.class, () -> new ObjectDecoder(), () -> new ObjectEncoder());
+        GsonCodec.registerTypeAdaptor(CloudMessage.class, () -> new CloudMessageDecoder(), () -> new CloudMessageEncoder());
     }
     public static void main(String[] args) throws InterruptedException {
         AppConfig appConfig = new AppConfig();

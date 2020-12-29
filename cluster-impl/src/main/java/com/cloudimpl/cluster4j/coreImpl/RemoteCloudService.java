@@ -95,7 +95,9 @@ public class RemoteCloudService implements CloudService {
 
     @Override
     public String toString() {
-        return "RemoteCloudService{" + "id=" + id + ", nodeId=" + nodeId + ", name=" + name + '}';
+        return "RemoteCloudService{" + "id=" + id + ", nodeId=" + nodeId + ", memberId=" + memberId + ", name=" + name + ", descriptor=" + descriptor + '}';
     }
+
+   
 
 }

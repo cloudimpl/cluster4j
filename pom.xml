@@ -251,6 +251,7 @@
         <module>cluster-collection</module>
         <module>db4j</module>
         <module>stream-core</module>
+        <module>db4ji2</module>
     </modules>
     <distributionManagement>
         <snapshotRepository>

@@ -52,5 +52,5 @@ public class FirstService implements Function<CloudMessage, Mono<String>>{
     public Mono<String> apply(CloudMessage t) {
         return Mono.just(t.data()+" world");
     }
-    
+   
 }

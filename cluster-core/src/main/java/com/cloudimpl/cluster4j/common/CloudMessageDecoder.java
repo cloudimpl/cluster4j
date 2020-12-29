@@ -27,7 +27,7 @@ import java.util.Map;
  *
  * @author nuwansa
  */
-public class ObjectDecoder implements JsonDeserializer<CloudMessage> {
+public class CloudMessageDecoder implements JsonDeserializer<CloudMessage> {
 
     @Override
     public CloudMessage deserialize(JsonElement je, Type type, JsonDeserializationContext jdc) throws JsonParseException {

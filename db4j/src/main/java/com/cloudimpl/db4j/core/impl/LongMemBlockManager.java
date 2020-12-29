@@ -18,10 +18,12 @@ package com.cloudimpl.db4j.core.impl;
 import java.nio.ByteBuffer;
 
 /** @author nuwansa */
-public class MemBlockManager {
-  private ByteBuffer buffer;
+public class LongMemBlockManager {
+  private final ByteBuffer buffer;
 
-  public MemBlockManager(ByteBuffer buffer) {
+  public LongMemBlockManager(ByteBuffer buffer, int pageSize) {
     this.buffer = buffer;
   }
+
+  public void put(long key, long value) {}
 }

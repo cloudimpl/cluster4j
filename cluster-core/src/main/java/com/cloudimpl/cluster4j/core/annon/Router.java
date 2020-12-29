@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * @author nuwansa
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE,ElementType.METHOD})
 public @interface Router {
     RouterType routerType();
     String loadBalancer() default "";

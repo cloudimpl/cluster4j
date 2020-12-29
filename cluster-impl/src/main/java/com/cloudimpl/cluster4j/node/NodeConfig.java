@@ -85,7 +85,7 @@ public class NodeConfig {
         private int gossipPort = 12000;
         private int nodePort = 10000;
         private int clientPort = 11000;
-        private List<Class<? extends ServiceEndpointPlugin>> serviceEndpoints;
+        private List<Class<? extends ServiceEndpointPlugin>> serviceEndpoints = new LinkedList<>();
 
         public Builder withSeedNodes(Address... address) {
             seeds.addAll(Arrays.asList(address));

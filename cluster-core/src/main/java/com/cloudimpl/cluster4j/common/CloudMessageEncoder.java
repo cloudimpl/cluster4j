@@ -25,7 +25,7 @@ import java.lang.reflect.Type;
  *
  * @author nuwansa
  */
-public class ObjectEncoder implements JsonSerializer<CloudMessage>{
+public class CloudMessageEncoder implements JsonSerializer<CloudMessage>{
 
     @Override
     public JsonElement serialize(CloudMessage t, Type type, JsonSerializationContext jsc) {

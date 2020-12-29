@@ -25,6 +25,7 @@ import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.cloudimpl.cluster.collection.CollectionOptions;
 import com.cloudimpl.cluster.collection.CollectionProvider;
 import java.util.ArrayList;
@@ -80,5 +81,16 @@ public class AwsCollectionProvider implements CollectionProvider {
 
         ddb.createTable(request);
 
+    }
+    
+    public boolean isTableExit(String tableName){
+        try{
+            ddb.describeTable(tableName);
+            return true;
+        }catch(ResourceNotFoundException ex)
+        {
+            return false;
+        }
+        
     }
 }

@@ -67,6 +67,11 @@ public class GsonCodec {
         return THR_GSON.get().toJson(obj);
     }
 
+    public static Gson getGson()
+    {
+        return THR_GSON.get();
+    }
+    
     public static String encodePretty(Object obj) {
         return THR_GSON_PRINTER.get().toJson(obj);
     }
@@ -147,8 +152,18 @@ public class GsonCodec {
 
     public static Object decode(String json)
     {
-        JsonElement el = JsonParser.parseString(json);
-        return decode(el);
+        if(isJsonEl(json.charAt(0)))
+        {
+            JsonElement el = JsonParser.parseString(json);
+            return decode(el);
+        }else
+            return json;
+    }
+    
+    
+    private static boolean isJsonEl(char c)
+    {
+        return c == '{' || c == '}' || c == '[' || c == ']';
     }
     
     public static Object decode(JsonElement elem) {

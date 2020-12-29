@@ -29,7 +29,7 @@ public class CloudServiceRegistry {
     CloudService old = services.putIfAbsent(service.id(), service);
     if (old != null)
       throw new ServiceRegistryException(
-          "duplicate service id " + old.id() + ", old = " + old.name() + ",new = " + service.name());
+          "duplicate service id " + old.id() + ", old = " + old+ ",new = " + service);
     try {
       service.init();
     } catch (Exception ex) {
