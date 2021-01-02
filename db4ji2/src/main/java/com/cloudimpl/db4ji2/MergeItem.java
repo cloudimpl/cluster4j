@@ -16,41 +16,20 @@
 package com.cloudimpl.db4ji2;
 
 /** @author nuwansa */
-public class Entry implements Comparable<Entry> {
+public class MergeItem<T> {
+  private final int level;
+  private final T item;
 
-  private long key;
-  private long value;
-
-  public Entry(long key, long value) {
-    this.key = key;
-    this.value = value;
+  public MergeItem(int level, T item) {
+    this.level = level;
+    this.item = item;
   }
 
-  public Entry() {}
-
-  // @Override
-  public long getKey() {
-    return this.key;
+  public int getLevel() {
+    return level;
   }
 
-  //  @Override
-  public long getValue() {
-    return this.value;
-  }
-
-  public Entry set(long key, long value) {
-    this.key = key;
-    this.value = value;
-    return this;
-  }
-
-  @Override
-  public String toString() {
-    return "Entry{" + "key=" + key + ", value=" + value + '}';
-  }
-
-  @Override
-  public int compareTo(Entry o) {
-    return Long.compare(getKey(), ((Entry) o).getKey());
+  public T getItem() {
+    return item;
   }
 }

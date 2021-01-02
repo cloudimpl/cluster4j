@@ -26,13 +26,14 @@ import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
 /** @author nuwansa */
-public class LongMemBlock {
+public class LongMemBlock implements Queryable {
 
   private final LongBuffer longBuffer;
   private final int maxItemCount;
   private final int offset;
   private long max;
   private long min;
+  private int size = -1;
 
   public LongMemBlock(ByteBuffer byteBuf, int offset, int pageSize) {
     this.longBuffer = byteBuf.position(offset).asLongBuffer().limit(pageSize / 8);
@@ -71,7 +72,34 @@ public class LongMemBlock {
     }
     size++;
     updateSize(size);
+    this.size = size;
+    this.min = Math.min(min, key);
+    this.max = Math.max(max, key);
     return true;
+  }
+
+  public java.util.Iterator<Entry> all(boolean asc, Supplier<Entry> sup) {
+    int size = getSize();
+    if (size == 0) {
+      return Iterator.EMPTY;
+    }
+    Iterator ite;
+    if (asc) {
+      ite = iterator(0, sup);
+    } else {
+      ite = iterator(size - 1, sup).reverse();
+    }
+    return ite;
+  }
+
+  @Override
+  public java.util.Iterator<Entry> all(boolean asc) {
+    return all(asc, () -> new Entry());
+  }
+
+  @Override
+  public java.util.Iterator<Entry> findGE(long key) {
+    return findGE(key, () -> new Entry());
   }
 
   public java.util.Iterator<Entry> findGE(long key, Supplier<Entry> sup) {
@@ -86,9 +114,19 @@ public class LongMemBlock {
     return iterator(pos, sup);
   }
 
+  @Override
+  public java.util.Iterator<Entry> findGT(long key) {
+    return findGT(key, () -> new Entry());
+  }
+
   public java.util.Iterator<Entry> findGT(long key, Supplier<Entry> sup) {
     Iterable<Entry> ite = () -> findGE(key, sup);
     return StreamSupport.stream(ite.spliterator(), false).filter(e -> e.getKey() != key).iterator();
+  }
+
+  @Override
+  public java.util.Iterator<Entry> findLE(long key) {
+    return findLE(key, () -> new Entry());
   }
 
   public java.util.Iterator<Entry> findLE(long key, Supplier<Entry> sup) {
@@ -103,9 +141,19 @@ public class LongMemBlock {
     return iterator(pos, sup).reverse();
   }
 
+  @Override
+  public java.util.Iterator<Entry> findLT(long key) {
+    return findLT(key, () -> new Entry());
+  }
+
   public java.util.Iterator<Entry> findLT(long key, Supplier<Entry> sup) {
     Iterable<Entry> ite = () -> findLE(key, sup);
     return StreamSupport.stream(ite.spliterator(), false).filter(e -> e.getKey() != key).iterator();
+  }
+
+  @Override
+  public java.util.Iterator<Entry> findEQ(long key) {
+    return findEQ(key, () -> new Entry());
   }
 
   public java.util.Iterator<Entry> findEQ(long key, Supplier<Entry> sup) {
@@ -125,10 +173,15 @@ public class LongMemBlock {
     long val = this.longBuffer.get(this.longBuffer.limit() - 1);
     val = (val & 0xFFFFFFFF00000000L) | size & 0xFFFFFFFFL;
     this.longBuffer.put(this.longBuffer.limit() - 1, val);
+    this.size = size;
   }
 
+  @Override
   public int getSize() {
-    return (int) this.longBuffer.get(this.longBuffer.limit() - 1);
+    if (this.size == -1) {
+      this.size = (int) this.longBuffer.get(this.longBuffer.limit() - 1);
+    }
+    return size;
   }
 
   public Entry entry(int index, Supplier<Entry> sup) {

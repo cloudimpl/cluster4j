@@ -15,19 +15,18 @@
  */
 package com.cloudimpl.db4ji2;
 
-import com.google.common.collect.Iterators;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /** @author nuwansa */
-public class LongMemBlockManager {
+public class LongMemBlockManager extends QueryBlockAggregator {
 
   private final int memSize;
   private final int pageSize;
@@ -64,59 +63,9 @@ public class LongMemBlockManager {
     return true;
   }
 
-  public java.util.Iterator<Entry> findEQ(long key) {
-    Iterable<Iterator<Entry>> itarable =
-        () ->
-            IntStream.range(0, currentBlkIndex)
-                .mapToObj(i -> blocks[i])
-                .map(m -> m.findEQ(key, () -> new Entry()))
-                .iterator();
-    return Iterators.mergeSorted(
-        itarable, (Entry o1, Entry o2) -> Long.compare(o1.getKey(), o2.getKey()));
-  }
-
-  public java.util.Iterator<Entry> findGE(long key) {
-    Iterable<Iterator<Entry>> itarable =
-        () ->
-            IntStream.range(0, currentBlkIndex)
-                .mapToObj(i -> blocks[i])
-                .map(m -> m.findGE(key, () -> new Entry()))
-                .iterator();
-    return Iterators.mergeSorted(
-        itarable, (Entry o1, Entry o2) -> Long.compare(o1.getKey(), o2.getKey()));
-  }
-
-  public java.util.Iterator<Entry> findGT(long key) {
-    Iterable<Iterator<Entry>> itarable =
-        () ->
-            IntStream.range(0, currentBlkIndex)
-                .mapToObj(i -> blocks[i])
-                .map(m -> m.findGT(key, () -> new Entry()))
-                .iterator();
-    return Iterators.mergeSorted(
-        itarable, (Entry o1, Entry o2) -> Long.compare(o1.getKey(), o2.getKey()));
-  }
-
-  public java.util.Iterator<Entry> findLE(long key) {
-    Iterable<Iterator<Entry>> itarable =
-        () ->
-            IntStream.range(0, currentBlkIndex)
-                .mapToObj(i -> blocks[i])
-                .map(m -> m.findLE(key, () -> new Entry()))
-                .iterator();
-    return Iterators.mergeSorted(
-        itarable, (Entry o1, Entry o2) -> Long.compare(o2.getKey(), o1.getKey()));
-  }
-
-  public java.util.Iterator<Entry> findLT(long key) {
-    Iterable<Iterator<Entry>> itarable =
-        () ->
-            IntStream.range(0, currentBlkIndex)
-                .mapToObj(i -> blocks[i])
-                .map(m -> m.findLT(key, () -> new Entry()))
-                .iterator();
-    return Iterators.mergeSorted(
-        itarable, (Entry o1, Entry o2) -> Long.compare(o2.getKey(), o1.getKey()));
+  @Override
+  protected Stream<Queryable> getBlockStream() {
+    return IntStream.range(0, currentBlkIndex).mapToObj(i -> blocks[i]);
   }
 
   public int getBlockCount() {
@@ -140,16 +89,16 @@ public class LongMemBlockManager {
     // list3.forEach(i->man.put(i, i * 10));
     System.gc();
     long start = System.nanoTime();
-    list1.forEach(i -> man.put(i, i * 10));
+    list4.forEach(i -> man.put(i, i * 10));
     long end = System.nanoTime();
     double d = ((double) (end - start)) / list1.size();
     System.out.println("op/s" + d + "thro:" + (1000000000 / d));
-    AtomicInteger i = new AtomicInteger(list1.size() - 2);
+    AtomicInteger i = new AtomicInteger(list1.size() - 1);
     start = System.currentTimeMillis();
-    man.findLT(list1.size() - 1)
+    man.all(false)
         .forEachRemaining(
             e -> {
-              if (e.getKey() != i.get()) {
+              if (e.getKey() != i.get() && e.getValue() != i.get() * 10) {
                 throw new RuntimeException("error  :" + e.getKey() + ":" + i.get());
               }
               i.decrementAndGet();
