@@ -21,6 +21,7 @@ import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -94,22 +95,29 @@ public class ColumnIndex extends QueryBlockAggregator {
     //    }
   }
 
+  public void dumpStats() {
+    queryables.stream()
+        .collect(Collectors.groupingBy(c -> c.getSize()))
+        .forEach((i, list) -> System.out.println("k:" + i + "->" + list.size()));
+    ;
+  }
+
   public static void main(String[] args) throws InterruptedException {
-    ColumnIndex idx = new ColumnIndex("Test", 4096 * 1280, 4096);
+    ColumnIndex idx = new ColumnIndex("Test", 4096 * 1280 * 32, 4096);
     // List<Integer> list1 =
     //   Arrays.asList(IntStream.range(0, 20_000_000).boxed().toArray(Integer[]::new));
     //  Collections.shuffle(list1);
 
     Random r = new Random(System.currentTimeMillis());
     long i = 0;
-    long size = 30_000_000;
+    long size = 40_000_000;
     int rate = 0;
     long start = System.currentTimeMillis();
     long lasKey = 0;
     long firstKey = 0;
     RateLimiter limiter = RateLimiter.create(400000);
     while (i < size) {
-      limiter.acquire();
+      //  limiter.acquire();
       lasKey = r.nextInt();
       if (firstKey == 0) {
         firstKey = lasKey;
@@ -117,7 +125,7 @@ public class ColumnIndex extends QueryBlockAggregator {
       idx.put(lasKey, i);
       if (i % 1000000 == 0) {
         System.out.println("query : " + idx.getQueryBlockCount());
-        /// System.gc();
+        System.gc();
       }
       rate++;
       long end = System.currentTimeMillis();
@@ -164,5 +172,12 @@ public class ColumnIndex extends QueryBlockAggregator {
     end = System.currentTimeMillis();
     System.out.println("diff: " + (end - start));
     System.out.println("xxx: " + idx.getQueryBlockCount());
+    idx.dumpStats();
+    //    idx.all(true)
+    //        .forEachRemaining(
+    //            entry -> {
+    //              System.out.println("e: " + entry);
+    //            });
+    Thread.sleep(100000000);
   }
 }
