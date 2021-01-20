@@ -166,6 +166,9 @@ public interface ILogger {
    */
   void warn(String format, Object... args);
 
+  String getGroup();
+  
+  String getSection();
   /**
    * The logging level.
    */

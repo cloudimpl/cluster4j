@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 nuwansa.
+ * Copyright 2020 nuwansa.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cloudimpl.db4ji2;
+package com.cloudimpl.db4ji2.idx.lng;
 
-import com.cloudimpl.db4ji2.idx.lng.LongColumnIndex;
-import com.cloudimpl.db4ji2.core.LongEntry;
-import com.cloudimpl.db4ji2.core.LongComparable;
-import java.util.Random;
+import com.cloudimpl.db4ji2.core.Entry;
 
 /** @author nuwansa */
-public class ColumnIndexSim extends LongColumnIndex {
+public interface LongQueryable {
+  <T extends Entry> java.util.Iterator<T> all(boolean asc);
 
-  private Random r = new Random(System.currentTimeMillis());
-  private long i = 0;
+  <T extends Entry> java.util.Iterator<T> findEQ(long key);
 
-  public ColumnIndexSim(String colName, int memSize, int pageSize,LongComparable comparable) {
-    super(colName, memSize, pageSize,comparable,()->new LongEntry());
-  }
+  <T extends Entry> java.util.Iterator<T> findGE(long key);
 
-  public void write() {
-    super.put(r.nextInt(), i++);
-  }
+  <T extends Entry> java.util.Iterator<T> findGT(long key);
+
+  <T extends Entry> java.util.Iterator<T> findLE(long key);
+
+  <T extends Entry> java.util.Iterator<T> findLT(long key);
+
+  int getSize();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 nuwansa.
+ * Copyright 2020 nuwansa.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cloudimpl.db4ji2;
-
-import com.cloudimpl.db4ji2.idx.lng.LongColumnIndex;
-import com.cloudimpl.db4ji2.core.LongEntry;
-import com.cloudimpl.db4ji2.core.LongComparable;
-import java.util.Random;
+package com.cloudimpl.db4ji2.core;
 
 /** @author nuwansa */
-public class ColumnIndexSim extends LongColumnIndex {
+public class MergeItem<T> {
+  private final int level;
+  private final T item;
 
-  private Random r = new Random(System.currentTimeMillis());
-  private long i = 0;
-
-  public ColumnIndexSim(String colName, int memSize, int pageSize,LongComparable comparable) {
-    super(colName, memSize, pageSize,comparable,()->new LongEntry());
+  public MergeItem(int level, T item) {
+    this.level = level;
+    this.item = item;
   }
 
-  public void write() {
-    super.put(r.nextInt(), i++);
+  public int getLevel() {
+    return level;
+  }
+
+  public T getItem() {
+    return item;
   }
 }

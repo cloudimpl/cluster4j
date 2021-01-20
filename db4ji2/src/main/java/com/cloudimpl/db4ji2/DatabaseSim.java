@@ -26,7 +26,7 @@ public class DatabaseSim {
     columns = new ColumnIndexSim[size];
     int i = 0;
     while (i < size) {
-      columns[i] = new ColumnIndexSim("" + i, 4096 * 1280, 4096);
+      columns[i] = new ColumnIndexSim("" + i, 4096 * 1280, 4096,Long::compare);
       i++;
     }
   }
