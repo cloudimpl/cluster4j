@@ -15,26 +15,12 @@
  */
 package com.cloudimpl.db4ji2.idx.str;
 
-import com.cloudimpl.db4ji2.idx.str.StringPage;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.function.Function;
-
 /**
  *
  * @author nuwan
  */
-public class ReadOnlyStringBlock {
-    private final Function<Integer,ByteBuffer> bufferProvider;
-    private final ArrayList<StringPage> pages;
-    private StringPage current;
-    private int currentIndex;
-    private int pageSize;
-    public ReadOnlyStringBlock(int pageSize,Function<Integer, ByteBuffer> bufferProvider) {
-        this.pageSize = pageSize;
-        this.bufferProvider = bufferProvider;
-        this.pages = new ArrayList<>();
-        this.current = null;
-        this.currentIndex = -1;
-    }
+public interface AppendOnlyStringBlock {
+     long append(CharSequence value);
+     long append(long pos, XCharSequence value);
+     String toString(long pos);
 }

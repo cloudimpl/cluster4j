@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cloudimpl.db4ji2.idx.str;
+package com.cloudimpl.db4ji2.idx.lng;
 
-import java.nio.LongBuffer;
+import com.cloudimpl.db4ji2.core.LongBTree;
+import com.cloudimpl.db4ji2.core.LongEntry;
 
 /**
  *
  * @author nuwan
  */
-public interface StringMemBlockPool {
-    LongBuffer getLongBuffer();
-    StringMemBlock aquire();
-    void release(StringMemBlock block);
+public class  DirectLongBTreePool implements LongBTreePool{
+
+    @Override
+    public LongBTree aquire(int maxItemCount) {
+        return LongBTree.create(maxItemCount, 4096, Long::compare,()->new LongEntry());
+    }
+
+    @Override
+    public void release(LongBTree btree) {
+   
+    }
+    
 }

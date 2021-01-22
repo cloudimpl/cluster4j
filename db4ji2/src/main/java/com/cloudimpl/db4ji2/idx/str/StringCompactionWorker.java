@@ -15,7 +15,6 @@
  */
 package com.cloudimpl.db4ji2.idx.str;
 
-import com.cloudimpl.db4ji2.idx.lng.LongQueryable;
 import com.cloudimpl.db4ji2.core.MergeItem;
 import java.util.List;
 import reactor.core.publisher.Mono;

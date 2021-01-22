@@ -38,7 +38,7 @@ public class LongBlockCompactionWorker extends LongCompactionWorker<LongBTree> {
   private MergeItem<LongBTree> merge(List<MergeItem<? extends LongQueryable>> items) {
     //   System.out.println("level:" + getLevel() + ":started");
     int totalItems = items.stream().map(m -> m.getItem()).mapToInt(LongQueryable::getSize).sum();
-    LongBTree btree = LongBTree.create(totalItems, 4096,getIdx().getComparator(),getIdx().getEntrySupplier());
+    LongBTree btree = getIdx().createBTree(totalItems);//LongBTree.create(totalItems, 4096,getIdx().getComparator(),getIdx().getEntrySupplier());
     LongQueryBlockAggregator blockMan =
         new LongQueryBlockAggregator(() -> items.stream().map(m -> m.getItem()));
     blockMan.all(true).forEachRemaining(e -> btree.put(e.getKey(), e.getValue()));

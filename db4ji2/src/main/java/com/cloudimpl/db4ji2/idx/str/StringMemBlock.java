@@ -15,21 +15,11 @@
  */
 package com.cloudimpl.db4ji2.idx.str;
 
-import com.cloudimpl.db4ji2.idx.str.StringQueryable;
-import com.cloudimpl.db4ji2.idx.str.XCharSequence;
-import com.cloudimpl.db4ji2.idx.str.XBasicString;
-import com.cloudimpl.db4ji2.idx.str.StringBlock;
 import com.cloudimpl.db4ji2.core.AbstractLongMemBlock;
 import com.cloudimpl.db4ji2.core.LongEntry;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
-import java.util.stream.StreamSupport;
 
 /**
  * @author nuwansa
@@ -37,10 +27,11 @@ import java.util.stream.StreamSupport;
 public class StringMemBlock extends AbstractLongMemBlock implements StringQueryable {
 
     private static ThreadLocal<XBasicString> thrLocal = ThreadLocal.withInitial(() -> new XBasicString());
-   
+    private Supplier<StringEntry> entrySupplier;
     private final StringBlock stringBlock;
-    public StringMemBlock(ByteBuffer byteBuf,StringBlock stringBlock, int offset, int pageSize) {
+    public StringMemBlock(ByteBuffer byteBuf,StringBlock stringBlock, int offset, int pageSize,Supplier<StringEntry> entrySupplier) {
         super(byteBuf, offset, pageSize);
+        this.entrySupplier = entrySupplier;
         this.stringBlock = stringBlock;
         setComparator(this::compare);
         
@@ -95,40 +86,44 @@ public class StringMemBlock extends AbstractLongMemBlock implements StringQuerya
     
     @Override
     public java.util.Iterator<LongEntry> all(boolean asc) {
-        return all(asc, () -> new LongEntry());
+        return all(asc, this::supplyEntry);
     }
 
     @Override
     public java.util.Iterator<LongEntry> findGE(CharSequence key) {
         thrLocal.get().init(key);
-        return findGE(-1000, () -> new LongEntry());
+        return findGE(-1000, this::supplyEntry);
     }
 
     @Override
     public java.util.Iterator<LongEntry> findGT(CharSequence key) {
         thrLocal.get().init(key);
-        return findGT(-1000, () -> new LongEntry());
+        return findGT(-1000,this::supplyEntry);
     }
 
     @Override
     public java.util.Iterator<LongEntry> findLE(CharSequence key) {
         thrLocal.get().init(key);
-        return findLE(-1000, () -> new LongEntry());
+        return findLE(-1000, this::supplyEntry);
     }
 
     @Override
     public java.util.Iterator<LongEntry> findLT(CharSequence key) {
         thrLocal.get().init(key);
-        return findLT(-1000, () -> new LongEntry());
+        return findLT(-1000, this::supplyEntry);
     }
 
     @Override
     public java.util.Iterator<LongEntry> findEQ(CharSequence key) {
         thrLocal.get().init(key);
-        return findEQ(-1000, () -> new LongEntry());
+        return findEQ(-1000, this::supplyEntry);
     }
 
-
+    private StringEntry supplyEntry()
+    {
+        return entrySupplier.get().setBlock(stringBlock);
+    }
+    
     @Override
     public void updateSize(int size) {
         super.updateSize(size);
@@ -155,31 +150,7 @@ public class StringMemBlock extends AbstractLongMemBlock implements StringQuerya
         } else {
             right = stringBlock;
         }
-
-//        int ret =  left.toString().compareTo(right.toString());
-//       System.out.println("l :"+left+ " r : "+right + "ret:"+ret);
-//       return ret;
-        char lc = left.nextChar(l++);
-        char rc = right.nextChar(r++);
-        while (lc != StringBlock.NULL && rc != StringBlock.NULL) {
-            if (lc != rc) {
-                return lc - rc;
-            }
-            lc = left.nextChar(l++);
-            rc = right.nextChar(r++);
-        }
-
-        if (lc != StringBlock.NULL && rc == StringBlock.NULL) {
-            System.out.println("l:" + left + "> r: " + right);
-            return lc;
-        } else if (lc == StringBlock.NULL && rc != StringBlock.NULL) {
-            System.out.println("l:" + left + "< r: " + right);
-            return -rc;
-        } else if (lc == StringBlock.NULL && rc == StringBlock.NULL) {
-            //     System.out.println("l:"+left+ "= r: "+right);
-            return 0;
-        }
-        throw new RuntimeException("unknown size");
+        return XCharSequence.compare(l, left, r, right);
     }
 
     @Override

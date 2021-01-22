@@ -13,44 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cloudimpl.db4ji2.idx.str;
+package com.cloudimpl.db4ji2.core;
 
-import java.nio.ByteBuffer;
+import java.security.InvalidParameterException;
+import java.util.function.Supplier;
 
 /**
  *
  * @author nuwan
  */
-public class StringPage {
-    private ByteBuffer buf;
-
-    public StringPage(ByteBuffer buf) {
-        this.buf = buf;
-    }
-    
-    
-    public int getPosition()
+public class Validation {
+    public static void checkCondition(boolean predicate,Supplier<String> msgSupplier)
     {
-        return this.buf.position();
-    }
-    
-    public int getCapacity()
-    {
-        return this.buf.capacity();
-    }
-    
-    public void append(char c)
-    {
-        this.buf.put((byte)c);
-    }
-    
-    public char getChar(int index)
-    {
-        return (char)this.buf.get(index);
-    }
-    
-    public boolean isFull()
-    {
-        return !this.buf.hasRemaining();
+        if(!predicate)
+            throw new InvalidParameterException(msgSupplier.get());
     }
 }

@@ -15,6 +15,7 @@
  */
 package com.cloudimpl.db4ji2.idx.lng;
 
+import com.cloudimpl.db4ji2.core.LongBTree;
 import com.cloudimpl.db4ji2.core.LongEntry;
 import com.cloudimpl.db4ji2.core.LongComparable;
 import com.cloudimpl.db4ji2.core.LongMemBlock;
@@ -41,13 +42,15 @@ public class LongColumnIndex extends LongQueryBlockAggregator {
     private LongMemBlock currentBlock;
     private LongComparable comparator;
     private final Supplier<LongEntry> entrySupplier;
+    private final LongBTreePool btreePool;
     private final CopyOnWriteArrayList<LongQueryable> queryables = new CopyOnWriteArrayList<>();
 
-    public LongColumnIndex(String colName, int memSize, int pageSize, LongComparable comparator,Supplier<LongEntry> entrySupplier) {
+    public LongColumnIndex(String colName, LongMemBlockPool pool,LongBTreePool btreePool, LongComparable comparator,Supplier<LongEntry> entrySupplier) {
         this.columnName = colName;
         this.comparator = comparator;
         this.entrySupplier = entrySupplier;
-        memPool = new LongMemBlockPool(memSize, pageSize);
+        this.btreePool = btreePool;
+        memPool = pool;
         compactMan = new LongCompactionManager(this);
         compactMan.init(7);
         currentBlock = memPool.aquire();
@@ -75,6 +78,11 @@ public class LongColumnIndex extends LongQueryBlockAggregator {
         }
     }
 
+    protected LongBTree createBTree(int maxitem)
+    {
+        return btreePool.aquire(maxitem);
+    }
+    
     protected synchronized void remove(LongQueryable query) {
         queryables.remove(query);
     }
@@ -109,20 +117,20 @@ public class LongColumnIndex extends LongQueryBlockAggregator {
         if (queryable instanceof LongMemBlock) {
             memPool.release((LongMemBlock) queryable);
         }
-        //    else if (queryable instanceof BTree) {
-        //      BTree.class.cast(queryable).close();
-        //    }
+        else
+        {
+            btreePool.release((LongBTree)queryable);
+        }
     }
 
     public void dumpStats() {
         queryables.stream()
                 .collect(Collectors.groupingBy(c -> c.getSize()))
                 .forEach((i, list) -> System.out.println("k:" + i + "->" + list.size()));
-        ;
     }
 
     public static void main(String[] args) throws InterruptedException {
-        LongColumnIndex idx = new LongColumnIndex("Test", 4096 * 1280 * 32, 4096, Long::compare,()->new LongEntry());
+        LongColumnIndex idx = new LongColumnIndex("Test",new DirectLongMemBlockPool(4096 * 1280 * 32, 4096),new DirectLongBTreePool(), Long::compare,()->new LongEntry());
         // List<Integer> list1 =
         //   Arrays.asList(IntStream.range(0, 20_000_000).boxed().toArray(Integer[]::new));
         //  Collections.shuffle(list1);
@@ -137,7 +145,7 @@ public class LongColumnIndex extends LongQueryBlockAggregator {
         RateLimiter limiter = RateLimiter.create(400000);
         while (i < size) {
             //  limiter.acquire();
-            lasKey = r.nextInt();
+            lasKey = r.nextLong();
             if (firstKey == 0) {
                 firstKey = lasKey;
             }

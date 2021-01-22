@@ -15,7 +15,6 @@
  */
 package com.cloudimpl.db4ji2.idx.lng;
 
-import com.cloudimpl.db4ji2.idx.lng.LongColumnIndex;
 import com.cloudimpl.db4ji2.core.MergeItem;
 import com.cloudimpl.db4ji2.core.LongBTree;
 import java.util.List;
@@ -87,7 +86,7 @@ public class LongBTreeLevelCompactionWorker extends LongCompactionWorker<LongBTr
     //              + " total processed :"
     //              + totalItemProcessed);
     //    }
-    LongBTree btree = LongBTree.create(totalItems, 4096,getIdx().getComparator(),getIdx().getEntrySupplier());
+    LongBTree btree = getIdx().createBTree(totalItems);//LongBTree.create(totalItems, 4096,getIdx().getComparator(),getIdx().getEntrySupplier());
     LongQueryBlockAggregator blockMan =
         new LongQueryBlockAggregator(() -> items.stream().map(m -> m.getItem()));
     blockMan.all(true).forEachRemaining(e -> btree.put(e.getKey(), e.getValue()));

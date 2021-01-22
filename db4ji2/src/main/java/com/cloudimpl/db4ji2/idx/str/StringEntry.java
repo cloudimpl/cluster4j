@@ -34,7 +34,7 @@ public class StringEntry extends LongEntry{
         return this;
     }
    
-    public XCharSequence getStringBlock()
+    public StringBlock getStringBlock()
     {
         return block;
     }

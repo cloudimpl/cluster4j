@@ -88,7 +88,7 @@ public class StringBTreeLevelCompactionWorker extends StringCompactionWorker<Str
     //              + " total processed :"
     //              + totalItemProcessed);
     //    }
-    StringBTree btree = StringBTree.create(totalItems, 4096,4096,getIdx().getEntrySupplier());
+    StringBTree btree = StringBTree.create(totalItems, 4096,new DirectStringBlock(4096),getIdx().getEntrySupplier());
     StringQueryBlockAggregator blockMan =
         new StringQueryBlockAggregator(() -> items.stream().map(m -> m.getItem()));
     blockMan.all(true).forEachRemaining(e -> btree.put(e));

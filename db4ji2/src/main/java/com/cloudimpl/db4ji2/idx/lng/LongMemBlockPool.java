@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 nuwansa.
+ * Copyright 2021 nuwan.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,45 +16,14 @@
 package com.cloudimpl.db4ji2.idx.lng;
 
 import com.cloudimpl.db4ji2.core.LongMemBlock;
-import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
-import org.agrona.concurrent.ManyToManyConcurrentArrayQueue;
 
-/** @author nuwansa */
-public class LongMemBlockPool {
-  private final int poolMemSize;
-  private final int pageSize;
-  private final ManyToManyConcurrentArrayQueue<LongMemBlock> memPool;
-  private final ByteBuffer buffer;
-  private final LongBuffer longBuffer;
-  public LongMemBlockPool(int poolMemSize, int pageSize) {
-    this.poolMemSize = poolMemSize;
-    this.pageSize = pageSize;
-    memPool = new ManyToManyConcurrentArrayQueue<>(this.poolMemSize / this.pageSize);
-    buffer = ByteBuffer.allocateDirect(this.poolMemSize);
-    longBuffer = buffer.asLongBuffer();
-    allocate();
-  }
-
-  private void allocate() {
-    int blocks = this.poolMemSize / this.pageSize;
-    int i = 0;
-    while (i < blocks) {
-      memPool.add(new LongMemBlock(buffer, i * pageSize, pageSize));
-      i++;
-    }
-  }
-
-  public LongBuffer getLongBuffer() {
-    return longBuffer;
-  }
-
-  public LongMemBlock aquire() {
-    return memPool.poll();
-  }
-
-  public void release(LongMemBlock block) {
-    block.updateSize(0);
-    memPool.add(block);
-  }
+/**
+ *
+ * @author nuwan
+ */
+public interface LongMemBlockPool {
+     LongBuffer getLongBuffer();
+     LongMemBlock aquire();
+     void release(LongMemBlock block);
 }

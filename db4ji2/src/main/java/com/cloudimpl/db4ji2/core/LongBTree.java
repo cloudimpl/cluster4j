@@ -50,6 +50,7 @@ public class LongBTree extends ReadOnlyLongBTree {
     this.pageSize = pageSize;
   }
 
+  @Deprecated
   public static LongBTree create(String fileName, int maxItemCount, int pageSize,LongComparable comparator,Supplier<? extends Entry> entrySupplier) {
     try (RandomAccessFile file = new RandomAccessFile(fileName, "rw")) {
       LongBTree tree =
@@ -65,6 +66,7 @@ public class LongBTree extends ReadOnlyLongBTree {
     }
   }
 
+  @Deprecated
   public static LongBTree create(int maxItemCount, int pageSize,LongComparable comparator,Supplier<? extends Entry> entrySupplier) {
     LongBTree tree =
         new LongBTree(
@@ -76,6 +78,18 @@ public class LongBTree extends ReadOnlyLongBTree {
     return tree;
   }
 
+  public static LongBTree create(int maxItemCount,int pageSize,Function<Integer,ByteBuffer> btreeBufferProvider,Function<Integer,ByteBuffer> headerBufferProvider,LongComparable comparator,Supplier<? extends Entry> entrySupplier)
+  {
+      LongBTree tree =
+        new LongBTree(
+            maxItemCount,
+            pageSize,
+            new LongBTree.Header(headerBufferProvider.apply(1024)),
+            size -> btreeBufferProvider.apply(size),comparator,entrySupplier);
+    tree.init();
+    return tree;
+  }
+  
   public static ReadOnlyLongBTree from(String fileName,LongComparable comparator,Supplier<? extends Entry> entrySupplier) {
     try (RandomAccessFile file = new RandomAccessFile(fileName, "r")) {
       ReadOnlyLongBTree tree =
@@ -110,6 +124,11 @@ public class LongBTree extends ReadOnlyLongBTree {
     this.currentIndex = 0;
   }
 
+  public int getBufSize()
+  {
+    return this.mainBuffer.capacity();
+  }
+  
   protected void reset(ByteBuffer blankPage) {
     this.currentIndex = 0;
     blankPage.position(0).limit(blankPage.capacity());

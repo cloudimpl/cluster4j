@@ -39,7 +39,7 @@ public class StringBlockCompactionWorker extends StringCompactionWorker<StringBT
   private MergeItem<StringBTree> merge(List<MergeItem<? extends StringQueryable>> items) {
     //   System.out.println("level:" + getLevel() + ":started");
     int totalItems = items.stream().map(m -> m.getItem()).mapToInt(StringQueryable::getSize).sum();
-    StringBTree btree = StringBTree.create(totalItems, 4096,4096,getIdx().getEntrySupplier());
+    StringBTree btree = StringBTree.create(totalItems, 4096,new DirectStringBlock(4096),getIdx().getEntrySupplier());
     StringQueryBlockAggregator blockMan =
         new StringQueryBlockAggregator(() -> items.stream().map(m -> m.getItem()));
     blockMan.all(true).forEachRemaining(e -> btree.put(e));

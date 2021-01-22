@@ -18,6 +18,7 @@ package com.cloudimpl.db4ji2;
 import com.cloudimpl.db4ji2.idx.lng.LongColumnIndex;
 import com.cloudimpl.db4ji2.core.LongEntry;
 import com.cloudimpl.db4ji2.core.LongComparable;
+import com.cloudimpl.db4ji2.idx.lng.DirectLongMemBlockPool;
 import java.util.Random;
 
 /** @author nuwansa */
@@ -27,7 +28,7 @@ public class ColumnIndexSim extends LongColumnIndex {
   private long i = 0;
 
   public ColumnIndexSim(String colName, int memSize, int pageSize,LongComparable comparable) {
-    super(colName, memSize, pageSize,comparable,()->new LongEntry());
+    super(colName, new DirectLongMemBlockPool(memSize, pageSize),comparable,()->new LongEntry());
   }
 
   public void write() {

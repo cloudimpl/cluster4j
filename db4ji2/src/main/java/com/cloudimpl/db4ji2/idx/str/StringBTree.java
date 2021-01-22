@@ -22,6 +22,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -42,9 +43,9 @@ public class StringBTree implements StringQueryable {
     public StringBTree(int maxItemCount,
             int pageSize,
             LongBTree.Header header,
-            Function<Integer, ByteBuffer> bufferProvider, int stringPageSize, Function<Integer, ByteBuffer> stringBufferProvider, Supplier<StringEntry> entrySupplier) {
+            Function<Integer, ByteBuffer> bufferProvider, StringBlock stringBlock, Supplier<StringEntry> entrySupplier) {
         this.entrySupplier = entrySupplier;
-        this.stringBlock = new StringBlock(stringPageSize, stringBufferProvider);
+        this.stringBlock = stringBlock;
         this.tree = new LongBTree(maxItemCount, pageSize, header, bufferProvider, this::compare, this::entrySupplier);
     }
 
@@ -104,13 +105,13 @@ public class StringBTree implements StringQueryable {
         return XCharSequence.compare(l, left, r, right);
     }
 
-    public static StringBTree create(int maxItemCount, int pageSize, int stringPageSize, Supplier<StringEntry> entrySupplier) {
+    public static StringBTree create(int maxItemCount, int pageSize,StringBlock stringBlock, Supplier<StringEntry> entrySupplier) {
         StringBTree tree
                 = new StringBTree(
                         maxItemCount,
                         pageSize,
                         new LongBTree.Header(ByteBuffer.allocateDirect(1024)),
-                        size -> ByteBuffer.allocateDirect(size), stringPageSize, size -> ByteBuffer.allocateDirect(size), entrySupplier);
+                        size -> ByteBuffer.allocateDirect(size), stringBlock, entrySupplier);
         tree.init();
         return tree;
     }
@@ -170,7 +171,7 @@ public class StringBTree implements StringQueryable {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        StringBTree tree = StringBTree.create(4 * 1024 * 1024, 4096, 4096, () -> new StringEntry());
+        StringBTree tree = StringBTree.create(4 * 1024 * 1024, 4096, new DirectStringBlock(4096), () -> new StringEntry());
 
         String l = "vgC063VOenHDpyZqdSJX";
         String right = "zzzm7M8WO6miwWOaWgxT";
