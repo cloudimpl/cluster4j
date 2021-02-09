@@ -14,7 +14,7 @@
             <artifactId>cluster-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.mapdb</groupId>
             <artifactId>mapdb</artifactId>
             <version>3.0.8</version>
@@ -24,5 +24,36 @@
             <artifactId>agrona</artifactId>
             <version>1.8.0</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.aitusoftware/babl -->
+        <dependency>
+            <groupId>com.aitusoftware</groupId>
+            <artifactId>babl</artifactId>
+            <version>0.10.0</version>
+        </dependency>
     </dependencies>
+    <!--    <build>
+       <plugins>
+    <plugin>
+       <groupId>org.apache.maven.plugins</groupId>
+       <artifactId>maven-compiler-plugin</artifactId>
+       <version>3.8.1</version>
+       <configuration>
+           <compilerArgument>add-modules=jdk.incubator.foreign</compilerArgument>
+       </configuration>
+    </plugin>
+
+    <plugin>
+       <groupId>org.apache.maven.plugins</groupId>
+       <artifactId>maven-surefire-plugin</artifactId>
+       <version>3.0.0-M5</version>
+       <configuration>
+            <argLine>add-modules=jdk.incubator.foreign</argLine>
+       </configuration>
+     </plugin>
+   </plugins>
+    </build>-->
+    <properties>
+        <!--    <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>-->
+    </properties>
 </project>

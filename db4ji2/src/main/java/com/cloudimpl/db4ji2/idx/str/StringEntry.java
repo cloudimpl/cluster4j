@@ -17,7 +17,7 @@ package com.cloudimpl.db4ji2.idx.str;
 
 import com.cloudimpl.db4ji2.idx.str.XCharSequence;
 import com.cloudimpl.db4ji2.idx.str.StringBlock;
-import com.cloudimpl.db4ji2.core.LongEntry;
+import com.cloudimpl.db4ji2.core.old.LongEntry;
 
 /**
  *

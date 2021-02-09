@@ -15,8 +15,8 @@
  */
 package com.cloudimpl.db4ji2.idx.str;
 
-import com.cloudimpl.db4ji2.core.LongComparable;
-import com.cloudimpl.db4ji2.core.MergeItem;
+import com.cloudimpl.db4ji2.core.old.LongComparable;
+import com.cloudimpl.db4ji2.core.old.MergeItem;
 import com.google.common.util.concurrent.RateLimiter;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -115,6 +115,7 @@ public class StringColumnIndex extends StringQueryBlockAggregator {
     }
 
     public static void main(String[] args) throws InterruptedException {
+        System.out.println("max: "+Integer.MAX_VALUE);
         StringColumnIndex idx = new StringColumnIndex("Test",new DirectStringMemBlockPool(4096 * 1280 * 32, 4096),()->new StringEntry());
         // List<Integer> list1 =
         //   Arrays.asList(IntStream.range(0, 20_000_000).boxed().toArray(Integer[]::new));

@@ -16,7 +16,7 @@
 package com.cloudimpl.db4ji2.idx.str;
 
 import com.cloudimpl.db4ji2.idx.str.StringBlock;
-import com.cloudimpl.db4ji2.core.LongBTree;
+import com.cloudimpl.db4ji2.core.old.LongBTree;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;

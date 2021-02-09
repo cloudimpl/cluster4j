@@ -15,10 +15,9 @@
  */
 package com.cloudimpl.db4ji2.idx.str;
 
-import com.cloudimpl.db4ji2.idx.lng.*;
-import com.cloudimpl.db4ji2.idx.lng.LongColumnIndex;
-import com.cloudimpl.db4ji2.core.MergeItem;
-import com.cloudimpl.db4ji2.core.LongBTree;
+import com.cloudimpl.db4ji2.idx.lng.old.LongColumnIndex;
+import com.cloudimpl.db4ji2.core.old.MergeItem;
+import com.cloudimpl.db4ji2.core.old.LongBTree;
 import java.util.List;
 import java.util.stream.Collectors;
 import reactor.core.publisher.Mono;

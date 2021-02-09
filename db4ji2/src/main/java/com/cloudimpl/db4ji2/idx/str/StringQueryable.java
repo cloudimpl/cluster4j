@@ -15,7 +15,7 @@
  */
 package com.cloudimpl.db4ji2.idx.str;
 
-import com.cloudimpl.db4ji2.core.Entry;
+import com.cloudimpl.db4ji2.core.old.Entry;
 
 /** @author nuwansa */
 public interface StringQueryable {

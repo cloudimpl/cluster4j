@@ -15,8 +15,8 @@
  */
 package com.cloudimpl.db4ji2.idx.str;
 
-import com.cloudimpl.db4ji2.core.AbstractLongMemBlock;
-import com.cloudimpl.db4ji2.core.LongEntry;
+import com.cloudimpl.db4ji2.core.old.AbstractLongMemBlock;
+import com.cloudimpl.db4ji2.core.old.LongEntry;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.function.Supplier;

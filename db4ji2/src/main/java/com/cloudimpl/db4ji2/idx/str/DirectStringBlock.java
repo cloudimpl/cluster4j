@@ -15,7 +15,7 @@
  */
 package com.cloudimpl.db4ji2.idx.str;
 
-import com.cloudimpl.db4ji2.core.Validation;
+import com.cloudimpl.db4ji2.core.old.Validation;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import org.agrona.BitUtil;
