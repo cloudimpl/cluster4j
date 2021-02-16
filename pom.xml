@@ -253,6 +253,7 @@
         <module>stream-core</module>
         <module>db4ji2</module>
         <module>jgroup</module>
+        <module>awaDb</module>
     </modules>
     <distributionManagement>
         <snapshotRepository>

@@ -15,7 +15,6 @@
  */
 package test;
 
-import com.cloudimpl.db4ji2.core.old.Validation;
 import java.lang.invoke.VarHandle;
 import java.util.Arrays;
 import java.util.function.Function;
@@ -26,19 +25,19 @@ import jdk.incubator.foreign.MemorySegment;
  *
  * @author nuwan
  */
-public class Long2Btree extends AbstractBTree {
+public class LongBtree extends AbstractBTree {
     
     private final LongComparable comparator;
 
-    public Long2Btree(int maxItemCount, int pageSize, Function<MemoryLayout, MemorySegment> memoryProvider, LongComparable comparator) {
-        super(maxItemCount, pageSize, Long.BYTES, long.class,Integer.BYTES,int.class, memoryProvider);
-        this.comparator = comparator;
+    public LongBtree(int maxItemCount, int pageSize, Function<Long, OffHeapMemory> memoryProvider) {
+        super(maxItemCount, pageSize, Long.BYTES, long.class,Long.BYTES, long.class,Integer.BYTES,int.class, memoryProvider);
+        this.comparator = Long::compare;
     }
     
     @Override
-    protected void fillIdxNode(long dstNodeIdx, long dstItemIdx, VarHandle itemHandler, long srcNodeIdx, long srcItemIdx) {
-        long key = (long) itemHandler.get(address, srcNodeIdx, srcItemIdx);
-        idxItemHandler.set(address, dstNodeIdx, dstItemIdx, key);
+    protected void fillIdxNode(long dstNodeIdx, long dstItemIdx, MemHandler itemHandler, long srcNodeIdx, long srcItemIdx) {
+        long key = itemHandler.getLong(srcNodeIdx, srcItemIdx);
+        idxItemHandler.set(dstNodeIdx, dstItemIdx, key);
     }
     
     public void put(long key, long value) {
@@ -49,25 +48,25 @@ public class Long2Btree extends AbstractBTree {
         long KeyitemIdx = currentItemIndex & (this.keyNodeCapacity - 1);
         
         if (this.currentItemIndex == 0) {
-            this.minKeyHandler.set(this.address, key);
+            this.minKeyHandler.set(key);
             setStartingOffset(value);
         }
-        this.keyItemHandler.set(this.address, keyNodeIdx, KeyitemIdx, key);
+        this.keyItemHandler.set(keyNodeIdx, KeyitemIdx, key);
         setValue(value);
         this.currentItemIndex++;
         if (this.currentItemIndex == this.maxItemCount) {
-            this.maxKeyHandler.set(this.address, key);
+            this.maxKeyHandler.set(key);
         }
     }
     
     @Override
     public long getMaxKeyAsLong() {
-        return (long) this.maxKeyHandler.get(this.address);
+        return this.maxKeyHandler.getLong();
     }
     
     @Override
     public long getMinKeyAsLong() {
-        return (long) this.minKeyHandler.get(this.address);
+        return this.minKeyHandler.getLong();
     }
     
     public final Iterator findEq(Iterator ite, long key) {
@@ -76,7 +75,7 @@ public class Long2Btree extends AbstractBTree {
         int pos = binarySearch(keyItemHandler, leafNodeIdx, size, key);
         if (pos >= 0) {
             pos = adjustEqLowPos((leafNodeIdx * this.keyNodeCapacity) + pos, key);
-            return ite.withEqKey(key).init(this, pos, getSize());
+            return ite.withEqKey(key,0).init(this, pos, getSize());
         }
         return Iterator.EMPTY;
     }
@@ -138,8 +137,8 @@ public class Long2Btree extends AbstractBTree {
         return entry.with(getKey(index), getValue(index));
     }
     
-    private long getKey(VarHandle itemHandler, int nodeIdx, int itemIdx) {
-        return (long) itemHandler.get(this.address, nodeIdx, itemIdx);
+    private long getKey(MemHandler itemHandler, int nodeIdx, int itemIdx) {
+        return itemHandler.getLong(nodeIdx, itemIdx);
     }
     
     private int adjustEqLowPos(int pos, long matchKey) {
@@ -159,10 +158,10 @@ public class Long2Btree extends AbstractBTree {
     public final long getKey(int index) {
         int nodeIdx = index >> this.keyIdxExponent;
         int itemIdx = index & this.keyNodeCapacity - 1;
-        return (long) this.keyItemHandler.get(this.address, nodeIdx, itemIdx);
+        return this.keyItemHandler.getLong(nodeIdx, itemIdx);
     }
     
-    protected int binarySearch(VarHandle itemHandler, int nodeIdx, int size, long key) {
+    protected int binarySearch(MemHandler itemHandler, int nodeIdx, int size, long key) {
         int low = 0;
         int high = size - 1;
         
@@ -218,7 +217,8 @@ public class Long2Btree extends AbstractBTree {
         System.setProperty("org.openjdk.java.util.stream.tripwire", "true");
         System.out.println(((4096 >> 3) - 1) >> 1);
         int vol = 30000000;
-        Long2Btree btree = new Long2Btree(vol, 4096, layout -> MemorySegment.allocateNative(layout), Long::compare);
+         MemoryManager man = new UnsafeMemoryManager();
+        LongBtree btree = new LongBtree(vol, 4096, layout -> man.allocateNative(layout));
         System.out.println("size: " + btree.memSize());
         System.gc();
         int j = 0;

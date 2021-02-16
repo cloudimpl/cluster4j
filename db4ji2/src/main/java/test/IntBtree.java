@@ -26,10 +26,8 @@ import jdk.incubator.foreign.MemorySegment;
  * @author nuwan
  */
 public class IntBtree extends AbstractBTree{
-    private final IntComparable comparator;
-    public IntBtree(int maxItemCount, int pageSize,Function<MemoryLayout, MemorySegment> memoryProvider, IntComparable comparator) {
-        super(maxItemCount, pageSize, Integer.BYTES,int.class,Integer.BYTES,int.class, memoryProvider);
-        this.comparator = comparator;
+    public IntBtree(int maxItemCount, int pageSize,Function<MemoryLayout, MemorySegment> memoryProvider) {
+        super(maxItemCount, pageSize, Integer.BYTES,int.class, Integer.BYTES,int.class,Integer.BYTES,int.class, memoryProvider);
     }
 
     @Override
@@ -78,7 +76,7 @@ public class IntBtree extends AbstractBTree{
         int pos = binarySearch(keyItemHandler, leafNodeIdx, size, key);
         if (pos >= 0) {
             pos = adjustEqLowPos((leafNodeIdx * this.keyNodeCapacity) + pos, key);
-            return ite.withEqKey(key).init(this, pos,getSize());
+            return ite.withEqKey(key,0).init(this, pos,getSize());
         }
         return Iterator.EMPTY;
     }
@@ -179,7 +177,7 @@ public class IntBtree extends AbstractBTree{
             int midVal = getKey(itemHandler, nodeIdx,mid);
 
             //if (midVal < key)
-            int ret = comparator.compare(midVal, key);
+            int ret = compare(midVal, key,0);
             if (ret < 0) {
                 low = mid + 1;
             } else if (ret > 0) //else if (midVal > key) 
@@ -220,7 +218,7 @@ public class IntBtree extends AbstractBTree{
         System.setProperty("org.openjdk.java.util.stream.tripwire", "true");
         System.out.println(((4096 >> 3) - 1) >> 1);
         int vol = 30000000;
-        IntBtree btree = new IntBtree(vol, 4096, layout -> MemorySegment.allocateNative(layout), Integer::compare);
+        IntBtree btree = new IntBtree(vol, 4096, layout -> MemorySegment.allocateNative(layout));
         System.out.println("size: " + btree.memSize());
         System.gc();
         int j = 0;

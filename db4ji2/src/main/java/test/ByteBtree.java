@@ -28,11 +28,8 @@ import jdk.incubator.foreign.MemorySegment;
  */
 public class ByteBtree extends AbstractBTree {
 
-    private final ShortComparable comparator;
-    
-    public ByteBtree(int maxItemCount, int pageSize, Function<MemoryLayout, MemorySegment> memoryProvider, ShortComparable comparator) {
-        super(maxItemCount, pageSize, Byte.BYTES, byte.class,Integer.BYTES,int.class, memoryProvider);
-        this.comparator = comparator;
+    public ByteBtree(int maxItemCount, int pageSize, Function<MemoryLayout, MemorySegment> memoryProvider) {
+        super(maxItemCount, pageSize, Byte.BYTES, byte.class,Byte.BYTES, byte.class, Integer.BYTES, int.class, memoryProvider);
     }
 
     @Override
@@ -48,39 +45,35 @@ public class ByteBtree extends AbstractBTree {
         long keyNodeIdx = currentItemIndex >> this.keyIdxExponent;
         long KeyitemIdx = currentItemIndex & (this.keyNodeCapacity - 1);
 
-        if(this.currentItemIndex == 0)
-        {
-            this.minKeyHandler.set(this.address,(long)key);
+        if (this.currentItemIndex == 0) {
+            this.minKeyHandler.set(this.address, (long) key);
             setStartingOffset(value);
         }
         this.keyItemHandler.set(this.address, keyNodeIdx, KeyitemIdx, key);
         setValue(value);
         this.currentItemIndex++;
-        if(this.currentItemIndex == this.maxItemCount)
-        {
-            this.maxKeyHandler.set(this.address,(long)key);
+        if (this.currentItemIndex == this.maxItemCount) {
+            this.maxKeyHandler.set(this.address, (long) key);
         }
     }
 
     @Override
-    public long getMaxKeyAsLong()
-    {
-        return (byte)this.maxKeyHandler.get(this.address);
+    public long getMaxKeyAsLong() {
+        return (byte) this.maxKeyHandler.get(this.address);
     }
-    
+
     @Override
-    public long getMinKeyAsLong()
-    {
-        return (byte)this.minKeyHandler.get(this.address);
+    public long getMinKeyAsLong() {
+        return (byte) this.minKeyHandler.get(this.address);
     }
-    
+
     public final Iterator findEq(Iterator ite, byte key) {
         int leafNodeIdx = findLeafNode(0, 0, key);
         int size = Math.min(this.currentItemIndex - (leafNodeIdx * this.keyNodeCapacity), this.keyNodeCapacity);
         int pos = binarySearch(keyItemHandler, leafNodeIdx, size, key);
         if (pos >= 0) {
             pos = adjustEqLowPos((leafNodeIdx * this.keyNodeCapacity) + pos, key);
-            return ite.withEqKey(key).init(this, pos, getSize());
+            return ite.withEqKey(key, 0).init(this, pos, getSize());
         }
         return Iterator.EMPTY;
     }
@@ -166,17 +159,15 @@ public class ByteBtree extends AbstractBTree {
         return (byte) this.keyItemHandler.get(this.address, nodeIdx, itemIdx);
     }
 
-
     protected int binarySearch(VarHandle itemHandler, int nodeIdx, int size, byte key) {
         int low = 0;
         int high = size - 1;
 
         while (low <= high) {
             int mid = (low + high) >>> 1;
-            short midVal = getKey(itemHandler, nodeIdx, mid);
-
+            long midVal = getKey(itemHandler, nodeIdx,mid);
             //if (midVal < key)
-            int ret = comparator.compare(midVal, key);
+            int ret = compare(midVal,0, key,0);
             if (ret < 0) {
                 low = mid + 1;
             } else if (ret > 0) //else if (midVal > key) 
@@ -227,7 +218,7 @@ public class ByteBtree extends AbstractBTree {
         byte[] bytes = new byte[vol];
         IntStream.range(0, vol).mapToObj(i -> bytes[i] = (byte) i).toArray(Byte[]::new);
         Arrays.sort(bytes);
-        ByteBtree btree = new ByteBtree(vol, 4096, layout -> MemorySegment.allocateNative(layout), Integer::compare);
+        ByteBtree btree = new ByteBtree(vol, 4096, layout -> MemorySegment.allocateNative(layout));
         System.out.println("srize: " + btree.memSize());
         System.gc();
         int j = 0;

@@ -65,6 +65,11 @@ public class LongMemBlock extends AbstractLongMemBlock implements NumberQueryBlo
         return true;
     }
 
+    public boolean isFull()
+    {
+        return getSize() == maxItemCount;
+    }
+    
     @Override
     public long getMaxKeyAsLong()
     {
@@ -78,12 +83,12 @@ public class LongMemBlock extends AbstractLongMemBlock implements NumberQueryBlo
     }
     
     @Override
-    public void updateSize(int size) {
+    public final void updateSize(int size) {
         super.updateSize(size);
     }
 
     @Override
-    public int getSize() {
+    public final int getSize() {
         return super.getSize();
     }
 

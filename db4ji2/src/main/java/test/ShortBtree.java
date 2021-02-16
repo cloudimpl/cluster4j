@@ -28,9 +28,9 @@ import jdk.incubator.foreign.MemorySegment;
  */
 public class ShortBtree extends AbstractBTree{
     private final ShortComparable comparator;
-    public ShortBtree(int maxItemCount, int pageSize,Function<MemoryLayout, MemorySegment> memoryProvider, ShortComparable comparator) {
-        super(maxItemCount, pageSize, Short.BYTES,short.class,Integer.BYTES,int.class, memoryProvider);
-        this.comparator = comparator;
+    public ShortBtree(int maxItemCount, int pageSize,Function<MemoryLayout, MemorySegment> memoryProvider) {
+        super(maxItemCount, pageSize, Short.BYTES,short.class,Short.BYTES,short.class,Integer.BYTES,int.class, memoryProvider);
+        this.comparator = Short::compare;
     }
 
     @Override
@@ -79,7 +79,7 @@ public class ShortBtree extends AbstractBTree{
         int pos = binarySearch(keyItemHandler, leafNodeIdx, size, key);
         if (pos >= 0) {
             pos = adjustEqLowPos((leafNodeIdx * this.keyNodeCapacity) + pos, key);
-            return ite.withEqKey(key).init(this, pos,getSize());
+            return ite.withEqKey(key,0).init(this, pos,getSize());
         }
         return Iterator.EMPTY;
     }
@@ -231,7 +231,7 @@ public class ShortBtree extends AbstractBTree{
         short[] shorts = new short[vol];
         IntStream.range(0, vol).mapToObj(i->shorts[i] =(short)i).toArray(Short[]::new);
         Arrays.sort(shorts);
-        ShortBtree btree = new ShortBtree(vol, 4096, layout -> MemorySegment.allocateNative(layout), Integer::compare);
+        ShortBtree btree = new ShortBtree(vol, 4096, layout -> MemorySegment.allocateNative(layout));
         System.out.println("size: " + btree.memSize());
         System.gc();
         int j = 0;

@@ -17,22 +17,25 @@ package test;
 
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
+import jdk.incubator.foreign.MemorySegment;
 import org.agrona.concurrent.ManyToManyConcurrentArrayQueue;
 
 /** @author nuwansa */
 public class NumberMemBlockPool{
   private final int poolMemSize;
   private final int pageSize;
-  private final ManyToManyConcurrentArrayQueue<NumberMemBlock> memPool;
+  private final ManyToManyConcurrentArrayQueue<Number2MemBlock> memPool;
   private final ByteBuffer buffer;
   private final LongBuffer longBuffer;
   private final MemorySegmentProvider provider;
+  private final MemorySegment memSegment;
   public NumberMemBlockPool(int poolMemSize, int pageSize,MemorySegmentProvider provider) {
     this.poolMemSize = poolMemSize;
     this.pageSize = pageSize;
     this.provider = provider;
     memPool = new ManyToManyConcurrentArrayQueue<>(this.poolMemSize / this.pageSize);
-    buffer = provider.apply(this.poolMemSize).asByteBuffer();
+    memSegment = provider.apply(this.poolMemSize);
+    buffer = memSegment.asByteBuffer();
     longBuffer = buffer.asLongBuffer();
     allocate();
   }
@@ -41,7 +44,7 @@ public class NumberMemBlockPool{
     int blocks = this.poolMemSize / this.pageSize;
     int i = 0;
     while (i < blocks) {
-      memPool.add(new NumberMemBlock(buffer, i * pageSize, pageSize));
+      memPool.add(new Number2MemBlock(buffer, i * pageSize, pageSize));
       i++;
     }
   }
@@ -50,11 +53,11 @@ public class NumberMemBlockPool{
     return longBuffer;
   }
 
-  public LongMemBlock aquire() {
+  public Number2MemBlock aquire() {
     return memPool.poll();
   }
 
-  public void release(NumberMemBlock block) {
+  public void release(Number2MemBlock block) {
     block.updateSize(0);
     memPool.add(block);
   }

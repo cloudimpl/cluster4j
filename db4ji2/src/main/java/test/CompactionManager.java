@@ -15,10 +15,45 @@
  */
 package test;
 
+import com.cloudimpl.cluster.common.FluxProcessor;
+
 /**
  *
  * @author nuwan
+ * @param <T>
  */
-public class CompactionManager {
-    private CompactionWorker
+public class CompactionManager<T extends QueryBlock> {
+    private final CompactionWorker[] workers;
+    private final CompactionWorkerProvider provider;
+    private final FluxProcessor<T> itemProcessor = new FluxProcessor<>();
+    private final ColumnIndex idx;
+    public CompactionManager(int levelCount,ColumnIndex idx,CompactionWorkerProvider provider) {
+        workers = new CompactionWorker[levelCount];
+        this.idx = idx;
+        this.provider = provider;
+        init();
+    }
+    
+    public  void submit(int level,T queryBlock)
+    {
+        itemProcessor.add(queryBlock);
+    }
+    
+    private void init()
+    {
+ 
+        
+        int i = 0;
+        while(i < workers.length)
+        {
+            final CompactionWorker worker = provider.apply(i);
+            workers[i] = worker;
+            itemProcessor.flux().publishOn(idx.getCompactionScheduler())
+                    
+                    .doOnNext(q->worker.submit(q))
+                    .doOnError(thr->thr.printStackTrace())
+                    .subscribe();
+            i++;
+        }
+    }
 }

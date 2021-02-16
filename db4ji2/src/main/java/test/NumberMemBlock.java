@@ -43,6 +43,9 @@ public class NumberMemBlock extends LongMemBlock {
     }
 
     public boolean put(LongBuffer temp, JsonNumber key, long value) {
+        if (isFull()) {
+            return false;
+        }
         if (getSize() == 0) {
             firstValue = value;
         }
@@ -56,7 +59,7 @@ public class NumberMemBlock extends LongMemBlock {
     }
 
     @Override
-    public JsonNumber getKey(int index,MutableJsonNumber jsonNumber) {
+    public JsonNumber getKey(int index, MutableJsonNumber jsonNumber) {
         long mantissa = super.getKey(index);
         int exp = (int) super.getValue(index);
         jsonNumber.set(mantissa, -exp);
@@ -64,8 +67,8 @@ public class NumberMemBlock extends LongMemBlock {
     }
 
     @Override
-    public NumberEntry getEntry(int index,NumberEntry numberEntry) {
-        getKey(index,numberEntry.key);
+    public NumberEntry getEntry(int index, NumberEntry numberEntry) {
+        getKey(index, numberEntry.key);
         numberEntry.value = getValue(index);
         return numberEntry;
     }
@@ -83,11 +86,11 @@ public class NumberMemBlock extends LongMemBlock {
         return firstValue + ((super.getValue(index) >> 32) & 0xFFFFFFFFL);
     }
 
-     @Override
+    @Override
     public int getMaxExp() {
         return this.maxExp;
     }
-    
+
     @Override
     public Iterator all(Iterator ite) {
         return (Iterator) super.all(ite);
@@ -160,7 +163,7 @@ public class NumberMemBlock extends LongMemBlock {
 
                 //  json.set(list2.get(q), 0);
                 //    System.out.println("json:"+json);
-            //    System.out.println("insert: " + list2.get(q) + " decimal: " + decimals.get(q)+  " row : "+q);
+                //    System.out.println("insert: " + list2.get(q) + " decimal: " + decimals.get(q)+  " row : "+q);
                 boolean ok = longBlock.put(temp, list2.get(q), q);
                 if (!ok) {
                     System.out.println("Full");
@@ -201,8 +204,8 @@ public class NumberMemBlock extends LongMemBlock {
 //            }
             i++;
         }
-         long end = System.currentTimeMillis();
-         System.out.println("op/s"+((double)(end -start)* 1000)/(i * list2.size()));
+        long end = System.currentTimeMillis();
+        System.out.println("op/s" + ((double) (end - start) * 1000) / (i * list2.size()));
         System.out.println("longBuf: " + longBlock);
     }
 }

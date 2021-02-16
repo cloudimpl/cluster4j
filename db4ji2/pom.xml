@@ -30,6 +30,12 @@
             <artifactId>babl</artifactId>
             <version>0.10.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.decimal4j</groupId>
+            <artifactId>decimal4j</artifactId>
+            <version>1.0.3</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
     <!--    <build>
        <plugins>

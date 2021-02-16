@@ -15,78 +15,67 @@
  */
 package test;
 
-import com.cloudimpl.db4ji2.core.old.Validation;
-import java.lang.invoke.VarHandle;
 import java.util.Arrays;
 import java.util.function.Function;
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.MemorySegment;
-import org.green.jelly.JsonNumber;
-import org.green.jelly.MutableJsonNumber;
+import java.util.stream.IntStream;
 
 /**
  *
  * @author nuwan
  */
-public class DecimalBtree extends AbstractBTree {
+public class ByteBtree extends AbstractBTree {
 
-    private final LongComparable comparator;
-    private final int maxExp;
-    public DecimalBtree(int maxItemCount, int pageSize, Function<MemoryLayout, MemorySegment> memoryProvider, LongComparable comparator, int maxExp) {
-        super(maxItemCount, pageSize, Long.BYTES, long.class, Long.BYTES, long.class, memoryProvider);
-        this.comparator = comparator;
-        this.maxExpHandler.set(this.address,(long)maxExp);
-        this.maxExp = maxExp;
+    public ByteBtree(int maxItemCount, int pageSize, Function<Long, OffHeapMemory> memoryProvider) {
+        super(maxItemCount, pageSize, Byte.BYTES, byte.class,Byte.BYTES, byte.class, Integer.BYTES, int.class, memoryProvider);
     }
 
     @Override
-    protected void fillIdxNode(long dstNodeIdx, long dstItemIdx, VarHandle itemHandler, long srcNodeIdx, long srcItemIdx) {
-        long key = (long) itemHandler.get(address, srcNodeIdx, srcItemIdx);
-        idxItemHandler.set(address, dstNodeIdx, dstItemIdx, key);
+    protected void fillIdxNode(long dstNodeIdx, long dstItemIdx, MemHandler itemHandler, long srcNodeIdx, long srcItemIdx) {
+        byte key = itemHandler.getByte(srcNodeIdx, srcItemIdx);
+        idxItemHandler.set(dstNodeIdx, dstItemIdx, key);
     }
 
-    public void put(JsonNumber key, long value) {
+    public void put(byte key, long value) {
         if (this.currentItemIndex >= this.maxItemCount) {
             throw new BTreeException("btree is full:" + this.currentItemIndex);
         }
         long keyNodeIdx = currentItemIndex >> this.keyIdxExponent;
         long KeyitemIdx = currentItemIndex & (this.keyNodeCapacity - 1);
 
-        long newKey = key.mantissa() * NumberQueryBlock.lookupTable[maxExp - Math.abs(key.exp())];
-        this.keyItemHandler.set(this.address, keyNodeIdx, KeyitemIdx, newKey);
-        setValue(value);
         if (this.currentItemIndex == 0) {
-            this.minKeyHandler.set(this.address, newKey);
-            this.setStartingOffset(value);
+            this.minKeyHandler.set((long) key);
+            setStartingOffset(value);
         }
+        this.keyItemHandler.set(keyNodeIdx, KeyitemIdx, key);
+        setValue(value);
         this.currentItemIndex++;
         if (this.currentItemIndex == this.maxItemCount) {
-            this.maxKeyHandler.set(this.address, newKey);
+            this.maxKeyHandler.set((long) key);
         }
     }
 
     @Override
     public long getMaxKeyAsLong() {
-        return (long) this.maxKeyHandler.get(this.address);
+        return this.maxKeyHandler.getLong();
     }
 
     @Override
     public long getMinKeyAsLong() {
-        return (long) this.minKeyHandler.get(this.address);
+        return this.minKeyHandler.getLong();
     }
 
-    public final Iterator findEq(Iterator ite, long key) {
+    public final Iterator findEq(Iterator ite, byte key) {
         int leafNodeIdx = findLeafNode(0, 0, key);
         int size = Math.min(this.currentItemIndex - (leafNodeIdx * this.keyNodeCapacity), this.keyNodeCapacity);
         int pos = binarySearch(keyItemHandler, leafNodeIdx, size, key);
         if (pos >= 0) {
             pos = adjustEqLowPos((leafNodeIdx * this.keyNodeCapacity) + pos, key);
-            return ite.withEqKey(key).init(this, pos, getSize());
+            return ite.withEqKey(key, 0).init(this, pos, getSize());
         }
         return Iterator.EMPTY;
     }
 
-    public Iterator findGE(Iterator ite, long key) {
+    public Iterator findGE(Iterator ite, byte key) {
         int leafNodeIdx = findLeafNode(0, 0, key);
         int size = Math.min(this.currentItemIndex - (leafNodeIdx * this.keyNodeCapacity), this.keyNodeCapacity);
         int pos = binarySearch(keyItemHandler, leafNodeIdx * this.keyNodeCapacity, size, key);
@@ -99,7 +88,7 @@ public class DecimalBtree extends AbstractBTree {
         }
     }
 
-    public Iterator findGT(Iterator ite, int key) {
+    public Iterator findGT(Iterator ite, byte key) {
         int leafNodeIdx = findLeafNode(0, 0, key);
         int size = Math.min(this.currentItemIndex - (leafNodeIdx * this.keyNodeCapacity), this.keyNodeCapacity);
         int pos = binarySearch(keyItemHandler, leafNodeIdx * this.keyNodeCapacity, size, key);
@@ -112,7 +101,7 @@ public class DecimalBtree extends AbstractBTree {
         }
     }
 
-    public Iterator findLE(Iterator ite, int key) {
+    public Iterator findLE(Iterator ite, byte key) {
         int leafNodeIdx = findLeafNode(0, 0, key);
         int size = Math.min(this.currentItemIndex - (leafNodeIdx * this.keyNodeCapacity), this.keyNodeCapacity);
         int pos = binarySearch(keyItemHandler, leafNodeIdx * this.keyNodeCapacity, size, key);
@@ -125,7 +114,7 @@ public class DecimalBtree extends AbstractBTree {
         }
     }
 
-    public Iterator findLT(Iterator ite, int key) {
+    public Iterator findLT(Iterator ite, byte key) {
         int leafNodeIdx = findLeafNode(0, 0, key);
         int size = Math.min(this.currentItemIndex - (leafNodeIdx * this.keyNodeCapacity), this.keyNodeCapacity);
         int pos = binarySearch(keyItemHandler, leafNodeIdx * this.keyNodeCapacity, size, key);
@@ -138,40 +127,44 @@ public class DecimalBtree extends AbstractBTree {
         }
     }
 
-    private long getKey(VarHandle itemHandler, int nodeIdx, int itemIdx) {
-        return (long) itemHandler.get(this.address, nodeIdx, itemIdx);
+    public ByteEntry getEntry(int index, ByteEntry entry) {
+        entry.with(getKey(index), getValue(index));
+        return entry;
     }
 
-    private int adjustEqLowPos(int pos, long matchKey) {
+    private byte getKey(MemHandler itemHandler, int nodeIdx, int itemIdx) {
+        return itemHandler.getByte(nodeIdx, itemIdx);
+    }
+
+    private int adjustEqLowPos(int pos, byte matchKey) {
         while (pos >= 0 && getKey(pos) == matchKey) {
             pos--;
         }
         return pos + 1;
     }
 
-    private int adjustEqUpperPos(int pos, long matchKey) {
+    private int adjustEqUpperPos(int pos, byte matchKey) {
         while (pos < this.currentItemIndex && getKey(pos) == matchKey) {
             pos++;
         }
         return pos;
     }
 
-    public final long getKey(int index) {
+    public byte getKey(int index) {
         int nodeIdx = index >> this.keyIdxExponent;
         int itemIdx = index & this.keyNodeCapacity - 1;
-        return (long) this.keyItemHandler.get(this.address, nodeIdx, itemIdx);
+        return this.keyItemHandler.getByte(nodeIdx, itemIdx);
     }
-    
-    protected int binarySearch(VarHandle itemHandler, int nodeIdx, int size, long key) {
+
+    protected int binarySearch(MemHandler itemHandler, int nodeIdx, int size, byte key) {
         int low = 0;
         int high = size - 1;
 
         while (low <= high) {
             int mid = (low + high) >>> 1;
-            long midVal = getKey(itemHandler, nodeIdx, mid);
-
+            long midVal = getKey(itemHandler, nodeIdx,mid);
             //if (midVal < key)
-            int ret = comparator.compare(midVal, key);
+            int ret = compare(midVal,0, key,0);
             if (ret < 0) {
                 low = mid + 1;
             } else if (ret > 0) //else if (midVal > key) 
@@ -184,7 +177,7 @@ public class DecimalBtree extends AbstractBTree {
         return -(low + 1); // key not found.
     }
 
-    private int findLeafNode(int level, int itemIdx, long key) {
+    private int findLeafNode(int level, int itemIdx, byte key) {
         if (level == this.levelItemCount.length) {
             return itemIdx;
         }
@@ -208,7 +201,7 @@ public class DecimalBtree extends AbstractBTree {
 
     @Override
     public int getMaxExp() {
-        return maxExp;
+        return 0;
     }
 
     public static void main(String[] args) {
@@ -218,49 +211,56 @@ public class DecimalBtree extends AbstractBTree {
         System.setProperty("org.openjdk.java.util.stream.tripwire", "true");
         System.out.println(((4096 >> 3) - 1) >> 1);
         int vol = 30000000;
-        DecimalBtree btree = new DecimalBtree(vol, 4096, layout -> MemorySegment.allocateNative(layout), Long::compare,16);
-        System.out.println("size: " + btree.memSize());
+
+        byte[] bytes = new byte[vol];
+        IntStream.range(0, vol).mapToObj(i -> bytes[i] = (byte) i).toArray(Byte[]::new);
+        Arrays.sort(bytes);
+        MemoryManager man = new OffHeapMemoryManager();
+        ByteBtree btree = new ByteBtree(vol, 4096, layout -> man.allocateNative(layout));
+        System.out.println("srize: " + btree.memSize());
         System.gc();
         int j = 0;
-        Iterator ite4 = new Iterator();
-        Iterator ite3 = new Iterator();
-        MutableJsonNumber json = new MutableJsonNumber();
+        Iterator ite = new Iterator();
         while (j < 100000) {
             btree.reset();
             int k = 0;
             long start = System.currentTimeMillis();
             while (k < vol) {
-                json.set(k, 0);
-                btree.put(json, k * 10);
+                //   System.out.println("k:"+k);
+                byte s = bytes[k];
+                try {
+                    btree.put(s, k);
+                } catch (Exception ex) {
+                    System.out.println("k:" + k);
+                    ex.printStackTrace();;
+                }
                 k++;
             }
             btree.complete();
             long end = System.currentTimeMillis();
-            //   System.out.println("write:" + (end - start));
+            System.out.println("write:" + (end - start));
             start = System.currentTimeMillis();
             k = 0;
             while (k < vol) {
-                Iterator ite2 = btree.findEq(ite4, k);
-                int pos = ite2.nextInt();
-                long v = btree.getValue(pos);
-                long _key = btree.getKey(pos);
-                if (v != _key * 10) {
-                    System.out.println("invalid val:" + v + " k : " + k);
-                }
+                Iterator ite2 = btree.findEq(ite, bytes[k]);
+                long v = btree.getValue(ite2.nextInt());
+//                if (v != k) {
+//                    System.out.println("invalid val:" + v + " k : " + k);
+//                }
                 k++;
             }
             end = System.currentTimeMillis();
-            //  System.out.println("read:" + (end - start) + "ops:" + (((double) (end - start) * 1000)) / vol);
-
-            Iterator ite = btree.findGE(ite3, 100);
-            ite.forEachRemaining((int i) -> Validation.checkCondition(btree.getKey(i) * 10 == btree.getValue(i), () -> "value not equal"));
-
-            ite = btree.findGT(ite3, 100);
-            ite.forEachRemaining((int i) -> Validation.checkCondition(btree.getKey(i) * 10 == btree.getValue(i), () -> "value not equal"));
-            ite = btree.findLT(ite3, 100);
-            ite.forEachRemaining((int i) -> Validation.checkCondition(btree.getKey(i) * 10 == btree.getValue(i), () -> "value not equal"));
-            ite = btree.findLE(ite3, 100);
-            ite.forEachRemaining((int i) -> Validation.checkCondition(btree.getKey(i) * 10 == btree.getValue(i), () -> "value not equal"));
+            System.out.println("read:" + (end - start) + "ops:" + (((double) (end - start) * 1000)) / vol);
+//
+//            Iterator ite = btree.findGE(100);
+//            ite.forEachRemaining((int i) -> Validation.checkCondition(btree.getKey(i) * 10 == btree.getValue(i), () -> "value not equal"));
+//
+//            ite = btree.findGT(100);
+//            ite.forEachRemaining((int i) -> Validation.checkCondition(btree.getKey(i) * 10 == btree.getValue(i), () -> "value not equal"));
+//            ite = btree.findLT(100);
+//            ite.forEachRemaining((int i) -> Validation.checkCondition(btree.getKey(i) * 10 == btree.getValue(i), () -> "value not equal"));
+//            ite = btree.findLE(100);
+//            ite.forEachRemaining((int i) -> Validation.checkCondition(btree.getKey(i) * 10 == btree.getValue(i), () -> "value not equal"));
 
             j++;
         }

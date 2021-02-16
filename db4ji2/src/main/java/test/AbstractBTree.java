@@ -50,7 +50,7 @@ public abstract class AbstractBTree implements NumberQueryBlock {
 
     protected final VarHandle idxItemHandler;
     protected final VarHandle keyItemHandler;
-    private final VarHandle valueItemHandler;
+    protected final VarHandle valueItemHandler;
     protected final VarHandle minKeyHandler;
     protected final VarHandle maxKeyHandler;
     protected final VarHandle offsetHandler;
@@ -62,7 +62,7 @@ public abstract class AbstractBTree implements NumberQueryBlock {
     protected final int[] levelItemCount;
     protected long cacheStartOffset = -1;
 
-    public AbstractBTree(int maxItemCount, int pageSize, int keySize, Class<?> keyType,int valueSize,Class<?> valueType, Function<MemoryLayout, MemorySegment> memoryProvider) {
+    public AbstractBTree(int maxItemCount, int pageSize, int keySize, Class<?> keyType, int idxKeySize, Class<?> idxKeyType, int valueSize, Class<?> valueType, Function<MemoryLayout, MemorySegment> memoryProvider) {
         this.maxItemCount = maxItemCount;
         this.pageSize = pageSize;
         this.idxNodeCapacity = pageSize / keySize;
@@ -88,7 +88,7 @@ public abstract class AbstractBTree implements NumberQueryBlock {
                 MemoryLayout.ofValueBits(Long.SIZE, ByteOrder.nativeOrder()).withName("maxExp")
         );
         GroupLayout paddingLayout = MemoryLayout.ofUnion(MemoryLayout.ofPaddingBits(256 * 8), headerLayout);
-        SequenceLayout idxLayout = MemoryLayout.ofSequence(idxNodeCount, MemoryLayout.ofSequence(idxNodeCapacity, MemoryLayout.ofValueBits(keySize * 8, ByteOrder.nativeOrder())));
+        SequenceLayout idxLayout = MemoryLayout.ofSequence(idxNodeCount, MemoryLayout.ofSequence(idxNodeCapacity, MemoryLayout.ofValueBits(idxKeySize * 8, ByteOrder.nativeOrder())));
         SequenceLayout keyLayout = MemoryLayout.ofSequence(keyNodeCount, MemoryLayout.ofSequence(keyNodeCapacity, MemoryLayout.ofValueBits(keySize * 8, ByteOrder.nativeOrder())));
         SequenceLayout valueLayout = MemoryLayout.ofSequence(valueNodeCount, MemoryLayout.ofSequence(valueNodeCapacity, MemoryLayout.ofValueBits(valueSize * 8, ByteOrder.nativeOrder())));
 
@@ -96,11 +96,11 @@ public abstract class AbstractBTree implements NumberQueryBlock {
         // MemoryLayout.ofSequence(maxItemPerNode, MemoryLayout.ofValueBits(Integer.SIZE, ByteOrder.nativeOrder())).withName("valueSequence")));
         this.mainLayout = MemoryLayout.ofStruct(paddingLayout.withName("headerLayout"), idxLayout.withName("idxLayout"), keyLayout.withName("keyLayout"), valueLayout.withName("valueLayout"));
         this.memorySegment = memoryProvider.apply(this.mainLayout);
-        this.idxItemHandler = this.mainLayout.varHandle(keyType, MemoryLayout.PathElement.groupElement("idxLayout"), MemoryLayout.PathElement.sequenceElement(), MemoryLayout.PathElement.sequenceElement());
+        this.idxItemHandler = this.mainLayout.varHandle(idxKeyType, MemoryLayout.PathElement.groupElement("idxLayout"), MemoryLayout.PathElement.sequenceElement(), MemoryLayout.PathElement.sequenceElement());
         this.keyItemHandler = this.mainLayout.varHandle(keyType, MemoryLayout.PathElement.groupElement("keyLayout"), MemoryLayout.PathElement.sequenceElement(), MemoryLayout.PathElement.sequenceElement());
         this.valueItemHandler = this.mainLayout.varHandle(valueType, MemoryLayout.PathElement.groupElement("valueLayout"), MemoryLayout.PathElement.sequenceElement(), MemoryLayout.PathElement.sequenceElement());
-        this.maxKeyHandler = headerLayout.varHandle(long.class, MemoryLayout.PathElement.groupElement("max"));
-        this.minKeyHandler = headerLayout.varHandle(long.class, MemoryLayout.PathElement.groupElement("min"));
+        this.maxKeyHandler = headerLayout.varHandle(idxKeyType == double.class ? double.class : long.class, MemoryLayout.PathElement.groupElement("max"));
+        this.minKeyHandler = headerLayout.varHandle(idxKeyType == double.class ? double.class : long.class, MemoryLayout.PathElement.groupElement("min"));
         this.offsetHandler = headerLayout.varHandle(long.class, MemoryLayout.PathElement.groupElement("startOffset"));
         this.maxExpHandler = headerLayout.varHandle(long.class, MemoryLayout.PathElement.groupElement("maxExp"));
         this.address = this.memorySegment.baseAddress();
@@ -117,12 +117,12 @@ public abstract class AbstractBTree implements NumberQueryBlock {
         this.cacheStartOffset = value;
     }
 
-    protected final void setValue(long value) {
+    protected void setValue(long value) {
         long valueNodeIdx = currentItemIndex >> this.valueExponent;
         long valueitemIdx = currentItemIndex & (this.valueNodeCapacity - 1);
         this.valueItemHandler.set(this.address, valueNodeIdx, valueitemIdx, (int) (value - getStartingOffset()));
     }
-    
+
     protected final long getStartingOffset() {
         if (this.cacheStartOffset == -1) {
             this.cacheStartOffset = (long) this.offsetHandler.get(this.address);
@@ -157,6 +157,12 @@ public abstract class AbstractBTree implements NumberQueryBlock {
         int nodeIdx = index >> this.valueExponent;
         int itemIdx = index & this.valueNodeCapacity - 1;
         return (long) getStartingOffset() + ((int) this.valueItemHandler.get(this.address, nodeIdx, itemIdx));
+    }
+
+    protected long getRowValue(int index) {
+        int nodeIdx = index >> this.valueExponent;
+        int itemIdx = index & this.valueNodeCapacity - 1;
+        return (long) this.valueItemHandler.get(this.address, nodeIdx, itemIdx);
     }
 
     private int fillLevel(int dstItemOffset, VarHandle itemHandler, int srcNodeIdx, final int itemCount) {
@@ -201,7 +207,7 @@ public abstract class AbstractBTree implements NumberQueryBlock {
 
     protected final int getTotalIndexNodeCount(int maxItemCount) {
         int count = getLevelIndexCount(maxItemCount);
-        System.out.println("level:" + count);
+       // System.out.println("level:" + count);
         if (count <= 1) {
             return 1;
         }

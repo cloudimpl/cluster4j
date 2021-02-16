@@ -24,6 +24,43 @@ import org.green.jelly.MutableJsonNumber;
  */
 public interface NumberQueryBlock extends QueryBlock {
 
+    public static final NumberQueryBlock NULL = new NumberQueryBlock() {
+        @Override
+        public int getMaxExp() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public long getMaxKeyAsLong() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public long getMinKeyAsLong() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public Iterator all(Iterator ite) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public int getSize() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public long getKeyAsLong(int index) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public long getValue(int index) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+    };
+            
     public static final long[] lookupTable = {1L, 10L, 100L, 1000L, 10000L, 100000L,
         1000_000L, 1000_000_0L, 1000_000_00L, 1000_000_000L,
         1000_000_000_0L, 1000_000_000_00L, 1000_000_000_000L,
@@ -31,8 +68,20 @@ public interface NumberQueryBlock extends QueryBlock {
         1000_000_000_000_000_0L, 1000_000_000_000_000_00L
     };
     
+    public static final double[] lookupTable2 = {1L, 0.01D, 0.001D, 0.0001D, 0.000_01D, 0.000_001D,
+        0.000_000_1D, 0.000_000_01D, 0.000_000_001D, 0.000_000_000_1D,
+        0.000_000_000_01D, 0.000_000_000_001D, 0.000_000_000_000_1D,
+        0.000_000_000_000_01D,  0.000_000_000_000_001D,  0.000_000_000_000_000_1D,
+        0.000_000_000_000_000_01D, 0.000_000_000_000_000_001D
+    };
+    
     int getMaxExp();
 
+    default double getKeyAsDouble(int index)
+    {
+        return (double)getKeyAsLong(index);
+    }
+    
     long getMaxKeyAsLong();
 
     long getMinKeyAsLong();
@@ -53,7 +102,7 @@ public interface NumberQueryBlock extends QueryBlock {
 
     default NumberEntry getEntry(int index,NumberEntry entry)
     {
-        return entry.with(getKeyAsLong(index), -getMaxExp(), getValue(index));
+        return entry.with(getKeyAsLong(index),0, getValue(index));
     }
     
     default JsonNumber getKey(int index,MutableJsonNumber json)
@@ -61,15 +110,29 @@ public interface NumberQueryBlock extends QueryBlock {
          json.set(getKeyAsLong(index), 0);
          return json;
     }
+    
+    default int compare(int index,long rightKeyMantissa,int rightExp)
+    {
+        return compare(getKeyAsLong(index), 0, rightKeyMantissa, rightExp);
+    }
+    
+    default int compare(long leftKeyMantissa,int leftExp,long rightKeyMantissa,int rightExp)
+    {
+        return Long.compare(leftKeyMantissa, rightKeyMantissa);// works only when exp = 0
+    }
+    
+    
     public static final class Iterator<T extends NumberQueryBlock> extends QueryBlock.Iterator<T> {
 
         public static final NumberQueryBlock.Iterator EMPTY = new NumberQueryBlock.Iterator<>();
 
-        private long eqKey;
+        private long eqKeyMantissa;
+        private int eqKeyExp;
         private boolean checkEq;
 
-        protected Iterator withEqKey(long key) {
-            this.eqKey = key;
+        protected Iterator withEqKey(long mantissa, int exp) {
+            this.eqKeyMantissa = mantissa;
+            this.eqKeyExp = exp;
             this.checkEq = true;
             return this;
         }
@@ -90,7 +153,7 @@ public interface NumberQueryBlock extends QueryBlock {
 
         private boolean checkCondition(int index) {
             if (checkEq) {
-                return getQueryBlock().getKeyAsLong(index) == eqKey;
+                return getQueryBlock().compare(index, eqKeyMantissa, eqKeyExp) == 0;
             }
             return true;
         }

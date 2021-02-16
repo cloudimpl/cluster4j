@@ -15,6 +15,7 @@
  */
 package test;
 
+import com.cloudimpl.cluster.common.FluxProcessor;
 import com.cloudimpl.db4ji2.core.old.CompactionException;
 
 /**
@@ -26,13 +27,16 @@ public class NumberCompactionWorker extends CompactionWorker {
     private final NumberQueryBlock.Iterator[] iterators;
     private final NumberMergingIterator iterator;
     private final NumberEntry numberEntry;
-
+    private final FluxProcessor<QueryBlock> itemProcessor = new FluxProcessor<>();
+    
     public NumberCompactionWorker(int level, ColumnIndex idx, int batchCount) {
         super(level, idx);
         iterators = new NumberQueryBlock.Iterator[batchCount];
         iterator = new NumberMergingIterator(batchCount);
         this.numberEntry = new NumberEntry();
         initIterators();
+        itemProcessor.flux().publishOn(idx.getCompactionScheduler()).map(this::onBlock).filter(b->b != NumberQueryBlock.NULL)
+                .doOnNext(b->idx.getCompactionManager().submit(level + 1, b)).doOnError(thr->thr.printStackTrace()).subscribe();
     }
 
     private void initIterators() {
@@ -42,27 +46,35 @@ public class NumberCompactionWorker extends CompactionWorker {
         }
     }
 
-    public void submit(NumberQueryBlock queryBlock) {
-        iterator.add(queryBlock.all(iterators[iterator.getSize()]));
+    @Override
+    public void submit(QueryBlock queryBlock)
+    {
+        itemProcessor.add(queryBlock);
+    }
+    
+    private NumberQueryBlock onBlock(QueryBlock queryBlock) {
+        NumberQueryBlock numberQueryBlock = (NumberQueryBlock)queryBlock;
+        iterator.add(numberQueryBlock.all(iterators[iterator.getSize()]));
         if (iterator.getSize() == iterators.length) {
-            compact();
+            NumberQueryBlock newBlock = compact();
             iterator.reset();
+            return newBlock;
         }
-
+        return NumberQueryBlock.NULL;
     }
 
     @Override
     public NumberQueryBlock compact() {
         if (iterator.getMaxExp() == 0) {
             Class<?> type = getType(iterator.getMinKey(), iterator.getMaxKey(), iterator.getMaxExp());
-            NumberQueryBlock queryBlock = createBTree(type, iterator, iterator.getMaxExp(), iterator.getTotalItemCount());
+            NumberQueryBlock queryBlock = createBTree(type, iterator, iterator.getTotalItemCount());
             return queryBlock;
         } else {
-            return createBTree(double.class, iterator, iterator.getMaxExp(), iterator.getTotalItemCount());
+            return createBTree(double.class, iterator, iterator.getTotalItemCount());
         }
     }
 
-    private NumberQueryBlock createBTree(Class<?> type, NumberMergingIterator ite, int maxExp, int totalCount) {
+    private NumberQueryBlock createBTree(Class<?> type, NumberMergingIterator ite, int totalCount) {
         if (type == byte.class) {
             return createByteBTree(ite, totalCount);
         } else if (type == short.class) {
@@ -72,14 +84,14 @@ public class NumberCompactionWorker extends CompactionWorker {
         } else if (type == long.class) {
             return createLongBTree(ite, totalCount);
         } else if (type == double.class) {
-            return createDecimalBTree(ite, maxExp, totalCount);
+            return createDoubleBTree(ite, totalCount);
         } else {
             throw new CompactionException("unknown type:" + type);
         }
     }
 
     private NumberQueryBlock createByteBTree(NumberMergingIterator ite, int totalCount) {
-        ByteBtree btree = getIdx().createBTree(byte.class, 0, totalCount);
+        ByteBtree btree = getIdx().createBTree(byte.class, totalCount);
         while (ite.hasNext()) {
             ite.next(numberEntry);
             btree.put(numberEntry.getKeyAsByte(), numberEntry.getValue());
@@ -88,7 +100,7 @@ public class NumberCompactionWorker extends CompactionWorker {
     }
 
     private NumberQueryBlock createShortBTree(NumberMergingIterator ite, int totalCount) {
-        ShortBtree btree = getIdx().createBTree(short.class, 0, totalCount);
+        ShortBtree btree = getIdx().createBTree(short.class, totalCount);
         while (ite.hasNext()) {
             ite.next(numberEntry);
             btree.put(numberEntry.getKeyAsShort(), numberEntry.getValue());
@@ -97,7 +109,7 @@ public class NumberCompactionWorker extends CompactionWorker {
     }
 
     private NumberQueryBlock createIntBTree(NumberMergingIterator ite, int totalCount) {
-        IntBtree btree = getIdx().createBTree(int.class, 0, totalCount);
+        IntBtree btree = getIdx().createBTree(int.class, totalCount);
         while (ite.hasNext()) {
             ite.next(numberEntry);
             btree.put(numberEntry.getKeyAsInt(), numberEntry.getValue());
@@ -106,7 +118,7 @@ public class NumberCompactionWorker extends CompactionWorker {
     }
 
     private NumberQueryBlock createLongBTree(NumberMergingIterator ite, int totalCount) {
-        Long2Btree btree = getIdx().createBTree(long.class, 0, totalCount);
+        LongBtree btree = getIdx().createBTree(long.class, totalCount);
         while (ite.hasNext()) {
             ite.next(numberEntry);
             btree.put(numberEntry.getKeyAsInt(), numberEntry.getValue());
@@ -114,8 +126,8 @@ public class NumberCompactionWorker extends CompactionWorker {
         return btree;
     }
 
-    private NumberQueryBlock createDecimalBTree(NumberMergingIterator ite, int maxExp, int totalCount) {
-        DecimalBtree btree = getIdx().createBTree(long.class, maxExp, totalCount);
+    private NumberQueryBlock createDoubleBTree(NumberMergingIterator ite, int totalCount) {
+        DoubleBtree btree = getIdx().createBTree(long.class, totalCount);
         while (ite.hasNext()) {
             ite.next(numberEntry);
             btree.put(numberEntry.getKey(), numberEntry.getValue());
