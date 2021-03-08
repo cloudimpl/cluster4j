@@ -15,6 +15,7 @@
  */
 package test;
 
+import com.cloudimpl.mem.lib.OffHeapMemory;
 import jdk.incubator.foreign.MemorySegment;
 
 /**

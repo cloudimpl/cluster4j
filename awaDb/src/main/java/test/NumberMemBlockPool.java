@@ -15,6 +15,7 @@
  */
 package test;
 
+import com.cloudimpl.mem.lib.OffHeapMemory;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import jdk.incubator.foreign.MemorySegment;
@@ -24,7 +25,7 @@ import org.agrona.concurrent.ManyToManyConcurrentArrayQueue;
 public class NumberMemBlockPool{
   private final int poolMemSize;
   private final int pageSize;
-  private final ManyToManyConcurrentArrayQueue<Number2MemBlock> memPool;
+  private final ManyToManyConcurrentArrayQueue<NumberMemBlock> memPool;
   private final ByteBuffer buffer;
   private final LongBuffer longBuffer;
   private final MemorySegmentProvider provider;
@@ -44,7 +45,7 @@ public class NumberMemBlockPool{
     int blocks = this.poolMemSize / this.pageSize;
     int i = 0;
     while (i < blocks) {
-      memPool.add(new Number2MemBlock(buffer, i * pageSize, pageSize));
+      memPool.add(new NumberMemBlock(buffer, i * pageSize, pageSize));
       i++;
     }
   }
@@ -53,11 +54,11 @@ public class NumberMemBlockPool{
     return longBuffer;
   }
 
-  public Number2MemBlock aquire() {
+  public NumberMemBlock aquire() {
     return memPool.poll();
   }
 
-  public void release(Number2MemBlock block) {
+  public void release(NumberMemBlock block) {
     block.updateSize(0);
     memPool.add(block);
   }

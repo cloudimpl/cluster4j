@@ -11,21 +11,11 @@
     
     <dependencies>
         <dependency>
-            <groupId>org.questdb</groupId>
-            <artifactId>core</artifactId>
-            <version>5.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.agrona</groupId>
-            <artifactId>agrona</artifactId>
-            <version>1.8.0</version>
-        </dependency>
-          <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>cluster-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-         <!-- https://mvnrepository.com/artifact/com.aitusoftware/babl -->
+        <!-- https://mvnrepository.com/artifact/com.aitusoftware/babl -->
         <dependency>
             <groupId>com.aitusoftware</groupId>
             <artifactId>babl</artifactId>
@@ -37,5 +27,86 @@
             <version>1.0.3</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>mem-lib</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hubject</groupId>
+            <artifactId>aws-s3-io</artifactId>
+            <version>1.0.1</version>
+        </dependency>
     </dependencies>
+    <profiles>
+        <profile>
+            <id>prod</id>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>${basedir}/src/main/resources</directory>
+                        <!--<targetPath>locale</targetPath>-->
+                    </resource>
+                </resources>
+                <plugins>
+                    <plugin>
+                        <groupId>com.google.cloud.tools</groupId>
+                        <artifactId>jib-maven-plugin</artifactId>
+                        <version>2.7.1</version>    
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <from>
+                                <image>adoptopenjdk/openjdk15</image>
+                            </from>
+                            <to>
+                                <image>registry.hub.docker.com/nuwansa/awadb</image>
+                                <!--<credHelper>osxkeychain</credHelper>-->
+                                <tags>
+                                    <!--<tag>${project.version}</tag>-->
+                                    <!--<tag>2.1.2</tag>-->
+                                    <tag>latest</tag>
+                                </tags>
+                            </to>
+                            <container>
+                                <jvmFlags>
+                                    <jvmFlag>-Xms256m</jvmFlag>
+                                    <jvmFlag>-Xmx512m</jvmFlag>
+                                    <!--<jvmFlag>-Xdebug</jvmFlag>-->
+                                    <jvmFlag>--add-modules=jdk.incubator.foreign</jvmFlag>
+                                    <!--<jvmFlag>-Xmy:flag=jib-rules</jvmFlag>-->
+                                </jvmFlags>
+                                <mainClass>test.NumberColumnIndex</mainClass>
+                                <args>
+                                    <!--                                    <arg>-ws</arg>
+                                    <arg>true</arg>
+                                    <arg>-sn</arg>
+                                    <arg>seed-service</arg>-->
+                                </args>
+                                <ports>
+                                    <port>17000</port>
+                                    <port>2000-2003/udp</port>
+                                </ports>
+                                <labels>
+                                    <key1>value1</key1>
+                                    <key2>value2</key2>
+                                </labels>
+                                <format>OCI</format>
+                                <environment>
+                                    <app.version>${project.version}</app.version>
+                                    <app.name>${project.artifactId}</app.name>
+                                </environment>
+                            </container>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

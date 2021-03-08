@@ -20,5 +20,20 @@ package com.cloudimpl.raft.lib.msg;
  * @author nuwansa
  */
 public class RaftMsg {
+     private long termId;
+     private String senderId;
+
+    public RaftMsg(long termId, String senderId) {
+        this.termId = termId;
+        this.senderId = senderId;
+    }
+
+    public long getTermId() {
+        return termId;
+    }
+
+    public String getSenderId() {
+        return senderId;
+    }
     
 }

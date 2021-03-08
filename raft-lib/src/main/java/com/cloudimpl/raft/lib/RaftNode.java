@@ -16,7 +16,10 @@
 package com.cloudimpl.raft.lib;
 
 import com.cloudimpl.raft.lib.msg.ElectionReq;
+import com.cloudimpl.raft.lib.msg.ElectionResponse;
 import com.cloudimpl.raft.lib.msg.HeartBeat;
+import com.cloudimpl.raft.lib.msg.RaftPayload;
+import com.cloudimpl.raft.lib.msg.VoteAck;
 
 /**
  *
@@ -24,54 +27,85 @@ import com.cloudimpl.raft.lib.msg.HeartBeat;
  */
 public class RaftNode {
 
-    public enum State {
+    public enum MemberStatus {
         FOLLOWER, CANDIDATE, LEADER
     }
+    public enum Status {
+        ACCEPTED, REJECTED
+    }
     private long currentTerm;
-    private String lastVoteFor;
-    private State state;
+    private long lastAckterm;
+    private MemberStatus state;
     private final String nodeId;
     private String leaderId = "";
-    private final ElectionManager electionManager;
-    private  int electionTicks = 0;
-
-    public RaftNode(String nodeId, ElectionManager electionManager) {
-        this.electionManager = electionManager;
+    
+    public RaftNode(String nodeId) {
         this.nodeId = nodeId;
         this.currentTerm = 0;
-        this.lastVoteFor = null;
-        this.state = State.FOLLOWER;
+        this.lastAckterm = 0;
+        this.state = MemberStatus.FOLLOWER;
     }
 
-    public RaftRequest onTick()
+    public MemberStatus getState()
     {
-        this.electionTicks++;
-        if(this.electionTicks > electionManager.getElectionTicks())
-        {
-            this.currentTerm++;
-            this.lastVoteFor = nodeId;
-            this.state = State.CANDIDATE;
-            return new RaftRequest(currentTerm, nodeId, new ElectionReq());
-        }
-        return null;
+        return this.state;
     }
     
-    public RaftResponse onMsg(RaftRequest req) {
-        
-        this.electionTicks = 0;
-        
-        if (req.getMsg() instanceof HeartBeat) {
-            return onHb(req);
+    
+    public VoteAck requestVote(long requesterTerm)
+    {
+        if(currentTerm >= requesterTerm)
+        {
+            return createVoteAck(Status.REJECTED, "term is less than or equal for  what i have");
         }
-        return null;
+        else if(lastAckterm != 0)
+        {
+            return createVoteAck(Status.REJECTED, "already voted");
+        }
+        else
+        {
+            this.lastAckterm = requesterTerm;
+            return createVoteAck(Status.ACCEPTED, "vote accepted for termId "+requesterTerm);
+        }
     }
-
-    private RaftResponse onHb(RaftRequest req) {
-        if (req.getTerm() > currentTerm) {
-            currentTerm = req.getTerm();
-            state = State.FOLLOWER;
-            this.lastVoteFor = null;
+    
+    public void onHb(long requestTermId)
+    {
+        if(currentTerm <= requestTermId)
+        {
+            this.currentTerm = requestTermId;
+            this.state = MemberStatus.FOLLOWER;
+            this.lastAckterm = 0;
         }
-        return new RaftResponse(currentTerm, nodeId, req);
+    }
+    
+    protected ElectionReq createElection()
+    {
+        ElectionReq elReq =  new ElectionReq(++currentTerm,nodeId);
+        state = MemberStatus.CANDIDATE;
+        return elReq;
+    }
+    
+    protected ElectionResponse onElectionReq(ElectionReq req)
+    {
+        if(req.getTermId() > currentTerm && this.lastAckterm == 0)
+        {
+            return new ElectionResponse(currentTerm, nodeId, Status.ACCEPTED, "accepted");
+        }
+        return new ElectionResponse(currentTerm, nodeId, Status.REJECTED, "invalid termid or already voted for term");
+    }
+    
+    
+    protected void onAppenEntry(RaftPayload payload)
+    {
+        if(payload.getTermId() == currentTerm && leaderId.equals(payload.getSenderId()))
+        {
+            
+        }
+    }
+    
+    private VoteAck createVoteAck(RaftNode.Status status,String reason)
+    {
+        return new VoteAck(currentTerm, nodeId, status, reason);
     }
 }

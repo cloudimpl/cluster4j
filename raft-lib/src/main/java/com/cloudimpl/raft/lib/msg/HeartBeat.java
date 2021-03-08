@@ -19,6 +19,10 @@ package com.cloudimpl.raft.lib.msg;
  *
  * @author nuwansa
  */
-public class HeartBeat {
+public class HeartBeat extends RaftMsg{
+    
+    public HeartBeat(long termId, String senderId) {
+        super(termId, senderId);
+    }
     
 }

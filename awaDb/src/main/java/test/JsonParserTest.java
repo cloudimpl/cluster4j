@@ -31,6 +31,7 @@ public class JsonParserTest {
         parser.setListener(new JsonParserListener() {
             @Override
             public void onJsonStarted() {
+                System.out.println("json started");
                 //      throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
 
@@ -42,12 +43,14 @@ public class JsonParserTest {
 
             @Override
             public void onJsonEnded() {
+                System.out.println("json end");
                 //         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
 
             @Override
             public boolean onObjectStarted() {
                 //        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                System.out.println("object started");
                 return true;
             }
 
@@ -61,6 +64,7 @@ public class JsonParserTest {
             @Override
             public boolean onObjectEnded() {
                 //        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                System.out.println("object end");
                 return true;
             }
 

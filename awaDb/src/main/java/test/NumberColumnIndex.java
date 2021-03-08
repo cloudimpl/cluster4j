@@ -15,8 +15,13 @@
  */
 package test;
 
+import com.cloudimpl.mem.lib.OffHeapMemory;
+import com.cloudimpl.mem.lib.UnsafeMemoryManager;
+import com.cloudimpl.mem.lib.MemoryManager;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import jdk.incubator.foreign.MemoryLayout;
@@ -33,15 +38,16 @@ public class NumberColumnIndex implements ColumnIndex {
 
     private final String name;
     private final NumberMemBlockPool memBlockPool;
-    private Number2MemBlock currentBlock;
+    private NumberMemBlock currentBlock;
     private final CompactionManager compactionManager;
+    public int retry = 0;
     MemoryManager man = new UnsafeMemoryManager();
-
+    private Scheduler sched = Schedulers.fromExecutor(Executors.newFixedThreadPool(4));
     public AtomicLong size = new AtomicLong(0);
     public NumberColumnIndex(String name, int memPoolSize) {
         this.name = name;
-        compactionManager = new CompactionManager(10, this, this::compactionWorkerProvider);
-        this.memBlockPool = new NumberMemBlockPool(memPoolSize, getPageSize(), this::createMemSegment);
+        compactionManager = new CompactionManager(30, this, this::compactionWorkerProvider);
+        this.memBlockPool = new NumberMemBlockPool(memPoolSize, getPageSize(),s->this.createMemSegment("MemBlockPool", s));
         this.currentBlock = this.memBlockPool.aquire();
         size.addAndGet(this.currentBlock.memSize());
     }
@@ -53,6 +59,7 @@ public class NumberColumnIndex implements ColumnIndex {
             compactionManager.submit(0, currentBlock);
             currentBlock = memBlockPool.aquire();
             while (currentBlock == null) {
+                retry++;
                 currentBlock = memBlockPool.aquire();
             }
             size.addAndGet(this.currentBlock.memSize());
@@ -67,7 +74,7 @@ public class NumberColumnIndex implements ColumnIndex {
 
     @Override
     public Scheduler getCompactionScheduler() {
-        return Schedulers.parallel();
+        return sched;
     }
 
     @Override
@@ -85,13 +92,14 @@ public class NumberColumnIndex implements ColumnIndex {
     }
 
     private void recycle(QueryBlock queryBlock) {
-        if (queryBlock instanceof Number2MemBlock) {
-            memBlockPool.release((Number2MemBlock) queryBlock);
+        size.addAndGet(-queryBlock.memSize());
+        if (queryBlock instanceof NumberMemBlock) {
+            memBlockPool.release((NumberMemBlock) queryBlock);
         }else
         {
-        //    queryBlock.close();
+            queryBlock.close();
         }
-        size.addAndGet(-queryBlock.memSize());
+        
     }
 
     @Override
@@ -101,29 +109,28 @@ public class NumberColumnIndex implements ColumnIndex {
         return t;
     }
     
-    
     public <T extends AbstractBTree> T _createBTree(Class<?> type, int totalItemCount) {
         if (type == byte.class) {
-            return (T) new ByteBtree(totalItemCount, getPageSize(), this::createMemSegment);
+            return (T) new ByteBtree(totalItemCount, getPageSize(),size->this.createMemSegment("btree", size));
         } else if (type == short.class) {
-            return (T) new ShortBtree(totalItemCount, getPageSize(), this::createMemSegment);
+            return (T) new ShortBtree(totalItemCount, getPageSize(), size->this.createMemSegment("btree", size));
         } else if (type == int.class) {
-            return (T) new IntBtree(totalItemCount, getPageSize(), this::createMemSegment);
+            return (T) new IntBtree(totalItemCount, getPageSize(), size->this.createMemSegment("btree", size));
         } else if (type == long.class) {
-            return (T) new LongBtree(totalItemCount, getPageSize(), this::createMemSegment);
+            return (T) new LongBtree(totalItemCount, getPageSize(), size->this.createMemSegment("btree", size));
         } else if (type == double.class) {
-            return (T) new DoubleBtree(totalItemCount, getPageSize(), this::createMemSegment);
+            return (T) new DoubleBtree(totalItemCount, getPageSize(), size->this.createMemSegment("btree", size));
         } else {
             return null;
         }
     }
 
-    private OffHeapMemory createMemSegment(MemoryLayout layout) {
-        return createMemSegment(layout.byteSize());
+    private OffHeapMemory createMemSegment(String name,MemoryLayout layout) {
+        return createMemSegment(name,layout.byteSize());
     }
     AtomicInteger i = new AtomicInteger(0);
-    private OffHeapMemory createMemSegment(long size) {
-        return man.mapFromPath(Path.of("/Users/nuwan/data/"+i.incrementAndGet()+".data"), 0, size, FileChannel.MapMode.READ_WRITE);
+    private OffHeapMemory createMemSegment(String name,long size) {
+        return man.mapFromPath(Path.of(this.name+"_"+i.incrementAndGet()+".data"), 0, size, FileChannel.MapMode.READ_WRITE);
     }
 
     private int getPageSize() {
@@ -131,7 +138,8 @@ public class NumberColumnIndex implements ColumnIndex {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        NumberColumnIndex idx = new NumberColumnIndex("test", 100 * 1024 * 1024);
+        System.out.println("starting......");
+        NumberColumnIndex idx = new NumberColumnIndex("test", 1024 * 1024 * 1024);
         long l = 0;
         MutableJsonNumber json = new MutableJsonNumber();
 
@@ -139,14 +147,16 @@ public class NumberColumnIndex implements ColumnIndex {
         int rate = 0;
         try {
             while (l < Long.MAX_VALUE) {
-                json.set(l, 0);
+                json.set(ThreadLocalRandom.current().nextLong(), 0);
                 idx.put(json, l);
                 l++;
                 rate++;
                 long end = System.currentTimeMillis();
                 if(end - start >= 1000)
                 {
-                    System.out.println("rate: "+rate + " L "+l +"  "+  idx.size.get());
+                    System.out.println("rate: "+rate + " L "+l +"  "+  idx.size.get() + " retry : "+idx.retry + " diff :"+(end - start));
+                    Thread.yield();
+                    idx.retry = 0;
                     rate = 0;
                     start = System.currentTimeMillis();
                 }

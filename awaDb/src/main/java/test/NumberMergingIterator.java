@@ -71,6 +71,7 @@ public class NumberMergingIterator {
         }else
         {
             recycler.recycle(iterator.getQueryBlock());
+       //     System.out.println("recycle");
         }
         return this;
     }
@@ -107,14 +108,15 @@ public class NumberMergingIterator {
     public NumberEntry next(NumberEntry entry) {
         NumberQueryBlock.Iterator nextIter = queue.remove();
         int next = nextIter.nextInt();
+        nextIter.getQueryBlock().getEntry(next, entry);
         if (nextIter.hasNext()) {
             queue.add(nextIter);
         }
         else
         {
-            recycler.recycle(nextIter.getQueryBlock());
+            recycler.recycle(nextIter.getQueryBlock()); 
         }
-        return nextIter.getQueryBlock().getEntry(next, entry);
+        return entry;
     }
     
     private int compare(NumberQueryBlock left,int leftIndex, NumberQueryBlock right , int rightIndex)

@@ -15,11 +15,13 @@
  */
 package test;
 
-import java.lang.invoke.VarHandle;
+import com.cloudimpl.mem.lib.OffHeapMemoryManager;
+import com.cloudimpl.mem.lib.OffHeapMemory;
+import com.cloudimpl.mem.lib.MemoryManager;
+import com.cloudimpl.mem.lib.MemHandler;
+import com.cloudimpl.mem.lib.UnsafeMemoryManager;
 import java.util.Arrays;
 import java.util.function.Function;
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.MemorySegment;
 import org.green.jelly.JsonNumber;
 import org.green.jelly.MutableJsonNumber;
 
@@ -286,7 +288,7 @@ public class DoubleBtree extends AbstractBTree {
         System.setProperty("org.openjdk.java.util.stream.tripwire", "true");
         System.out.println(((4096 >> 3) - 1) >> 1);
         int vol = 30000000;
-         MemoryManager man = new OffHeapMemoryManager();
+         MemoryManager man = new UnsafeMemoryManager();
         DoubleBtree btree = new DoubleBtree(vol, 4096, layout -> man.allocateNative(layout));
         System.out.println("size: " + btree.memSize());
         System.gc();

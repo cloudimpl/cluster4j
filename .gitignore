@@ -49,3 +49,6 @@ target/**
 /db4ji2/target/
 /jgroup/target/
 /awaDb/target/
+/mem-lib/target/
+/msg-lib/target/
+/msglib-example/target/

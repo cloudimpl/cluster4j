@@ -15,6 +15,8 @@ package test;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.cloudimpl.mem.lib.OffHeapMemory;
+import com.cloudimpl.mem.lib.MemHandler;
 import java.nio.ByteOrder;
 import java.util.function.Function;
 import jdk.incubator.foreign.GroupLayout;
@@ -177,6 +179,7 @@ public abstract class AbstractBTree implements NumberQueryBlock {
     @Override
     public void close() {
         this.memorySegment.close();
+        
     }
 
     public void reset() {

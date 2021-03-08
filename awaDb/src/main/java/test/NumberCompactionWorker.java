@@ -65,7 +65,7 @@ public class NumberCompactionWorker extends CompactionWorker {
     @Override
     public NumberQueryBlock compact() {
         if (iterator.getMaxExp() == 0) {
-         //   System.out.println("level: "+getLevel() + " iter: "+iterator);
+       //     System.out.println("level: "+getLevel() + " max: "+iterator.getMaxKey() + " min : "+iterator.getMinKey());
             Class<?> type = getType(iterator.getMinKey(), iterator.getMaxKey(), iterator.getMaxExp());
             NumberQueryBlock queryBlock = createBTree(type, iterator, iterator.getTotalItemCount());
             return queryBlock;
@@ -96,6 +96,7 @@ public class NumberCompactionWorker extends CompactionWorker {
             ite.next(numberEntry);
             btree.put(numberEntry.getKeyAsByte(), numberEntry.getValue());
         }
+        btree.complete();
         return btree;
     }
 
@@ -105,6 +106,7 @@ public class NumberCompactionWorker extends CompactionWorker {
             ite.next(numberEntry);
             btree.put(numberEntry.getKeyAsShort(), numberEntry.getValue());
         }
+        btree.complete();
         return btree;
     }
 
@@ -114,6 +116,7 @@ public class NumberCompactionWorker extends CompactionWorker {
             ite.next(numberEntry);
             btree.put(numberEntry.getKeyAsInt(), numberEntry.getValue());
         }
+        btree.complete();
         return btree;
     }
 
@@ -123,15 +126,17 @@ public class NumberCompactionWorker extends CompactionWorker {
             ite.next(numberEntry);
             btree.put(numberEntry.getKeyAsInt(), numberEntry.getValue());
         }
+        btree.complete();
         return btree;
     }
 
     private NumberQueryBlock createDoubleBTree(NumberMergingIterator ite, int totalCount) {
-        DoubleBtree btree = getIdx().createBTree(long.class, totalCount);
+        DoubleBtree btree = getIdx().createBTree(double.class, totalCount);
         while (ite.hasNext()) {
             ite.next(numberEntry);
             btree.put(numberEntry.getKey(), numberEntry.getValue());
         }
+        btree.complete();
         return btree;
     }
 

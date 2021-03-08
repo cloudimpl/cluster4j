@@ -15,23 +15,21 @@
  */
 package test;
 
-import java.lang.invoke.VarHandle;
+import com.cloudimpl.mem.lib.UnsafeMemoryManager;
+import com.cloudimpl.mem.lib.OffHeapMemory;
+import com.cloudimpl.mem.lib.MemoryManager;
+import com.cloudimpl.mem.lib.MemHandler;
 import java.util.Arrays;
 import java.util.function.Function;
-import jdk.incubator.foreign.MemoryLayout;
-import jdk.incubator.foreign.MemorySegment;
 
 /**
  *
  * @author nuwan
  */
 public class LongBtree extends AbstractBTree {
-    
-    private final LongComparable comparator;
 
     public LongBtree(int maxItemCount, int pageSize, Function<Long, OffHeapMemory> memoryProvider) {
         super(maxItemCount, pageSize, Long.BYTES, long.class,Long.BYTES, long.class,Integer.BYTES,int.class, memoryProvider);
-        this.comparator = Long::compare;
     }
     
     @Override
@@ -170,7 +168,7 @@ public class LongBtree extends AbstractBTree {
             long midVal = getKey(itemHandler, nodeIdx, mid);
 
             //if (midVal < key)
-            int ret = comparator.compare(midVal, key);
+            int ret = compare(midVal,0, key,0);
             if (ret < 0) {
                 low = mid + 1;
             } else if (ret > 0) //else if (midVal > key) 

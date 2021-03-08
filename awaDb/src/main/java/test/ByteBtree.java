@@ -15,6 +15,10 @@
  */
 package test;
 
+import com.cloudimpl.mem.lib.OffHeapMemoryManager;
+import com.cloudimpl.mem.lib.OffHeapMemory;
+import com.cloudimpl.mem.lib.MemoryManager;
+import com.cloudimpl.mem.lib.MemHandler;
 import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.IntStream;

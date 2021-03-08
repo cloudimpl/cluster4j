@@ -15,6 +15,10 @@
  */
 package test;
 
+import com.cloudimpl.mem.lib.UnsafeMemoryManager;
+import com.cloudimpl.mem.lib.OffHeapMemory;
+import com.cloudimpl.mem.lib.MemoryManager;
+import com.cloudimpl.mem.lib.MemHandler;
 import java.util.Arrays;
 import java.util.function.Function;
 
@@ -174,7 +178,7 @@ public class IntBtree extends AbstractBTree{
             int midVal = getKey(itemHandler, nodeIdx,mid);
 
             //if (midVal < key)
-            int ret = compare(midVal, key,0);
+            int ret = compare(midVal,0, key,0);
             if (ret < 0) {
                 low = mid + 1;
             } else if (ret > 0) //else if (midVal > key) 

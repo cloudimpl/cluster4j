@@ -19,6 +19,10 @@ package com.cloudimpl.raft.lib.msg;
  *
  * @author nuwansa
  */
-public class ElectionReq {
+public class ElectionReq extends RaftMsg{
+    
+    public ElectionReq(long termId, String senderId) {
+        super(termId, senderId);
+    }
     
 }
